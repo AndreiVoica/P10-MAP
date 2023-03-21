@@ -41,6 +41,14 @@ dc.set_articulation_dof_position_targets(articulation5, joint_angles5)
 
 '''
 dc = _dynamic_control.acquire_dynamic_control_interface()
+articulationGrip = dc.get_articulation("/World/kr3_03/tool0")
+# Call this each frame of simulation step if the state of the articulation is changing.
+dc.wake_up_articulation(articulationGrip)
+joint_anglesGrip = [np.random.rand(9) * 2 - 1]
+dc.set_articulation_dof_position_targets(articulationGrip, joint_anglesGrip)
+'''
+'''
+dc = _dynamic_control.acquire_dynamic_control_interface()
 articulation1 = dc.get_articulation("/World/kr3_01")
 dc.wake_up_articulation(articulation1)
 dof_ptr1 = dc.find_articulation_dof(articulation1, "joint_a2")
