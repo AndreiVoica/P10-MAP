@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cobotta_pro_900_visualization</name>
+  <version>0.0.0</version>
+  <description>The cobotta_pro_900_visualization package</description>
+  <maintainer email="fa-support@denso-wave.com">suzuki</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <export>
+  </export>
+</package>
