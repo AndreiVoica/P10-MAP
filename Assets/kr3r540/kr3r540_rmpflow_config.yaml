@@ -8,7 +8,7 @@
 
 # Artificially limit the robot joints.  For example:
 # A joint with range +-pi would be limited to +-(pi-.01)
-joint_limit_buffers: [.01, .01, .01, .01, .01, .01, .01]
+joint_limit_buffers: [.01, .01, .01, .01, .01, .01]
 
 # RMPflow has many modifiable parameters, but these serve as a great start.
 # Most parameters will not need to be modified
@@ -87,7 +87,7 @@ canonical_resolve:
 # The example below defines the robot base to be a capsule defined by the absolute coordinates pt1 and pt2.
 # The semantic name provided for each body_cylinder does not need to be present in the robot URDF.
 body_cylinders:
-     - name: base
+     - name: base_link
        pt1: [0,0,.333]
        pt2: [0,0,0.]
        radius: .05
@@ -98,5 +98,5 @@ body_cylinders:
 # By design, most frames in industrial robots are kinematically unable to collide with the robot base.
 # It is often only necessary to define body_collision_controllers near the end effector
 body_collision_controllers:
-     - name: end_effector
+     - name: gripper_finger_right #name: end_effector
        radius: .05
