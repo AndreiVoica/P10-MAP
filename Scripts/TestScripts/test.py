@@ -53,7 +53,6 @@ articulation1 = dc.get_articulation("/World/kr3_01")
 dc.wake_up_articulation(articulation1)
 dof_ptr1 = dc.find_articulation_dof(articulation1, "joint_a2")
 dc.set_dof_position_target(dof_ptr1, -1)
-
 articulation2 = dc.get_articulation("/World/kr3_02")
 dc.wake_up_articulation(articulation2)
 dof_ptr2 = dc.find_articulation_dof(articulation2, "joint_a2")
