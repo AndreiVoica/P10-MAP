@@ -21,7 +21,7 @@ import os
 import argparse
 
 #TODO: Fill in tutorial directory with absolute path to this file
-TUTORIAL_DIRECTORY = "/home/robotlab/Documents/Github/P10-MAP/"
+TUTORIAL_DIRECTORY = "E:/Stuff/Faculta/P10/Assets/P10-MAP"
 
 rmp_config_dir = os.path.join(TUTORIAL_DIRECTORY,"Assets/kr3r540")
 
