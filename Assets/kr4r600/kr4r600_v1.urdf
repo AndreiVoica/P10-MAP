@@ -172,42 +172,42 @@
     <parent link="base_link"/>
     <child link="link_1"/>
     <axis xyz="0 0 -1"/>
-    <limit effort="0" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
+    <limit effort="100" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="joint_a2" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0"/>
     <parent link="link_1"/>
     <child link="link_2"/>
     <axis xyz="0 1 0"/>
-    <limit effort="0" lower="-3.4033920413889427" upper="0.6981317007977318" velocity="9.232791743050003"/>
+    <limit effort="100" lower="-3.4033920413889427" upper="0.6981317007977318" velocity="9.232791743050003"/>
   </joint>
   <joint name="joint_a3" type="revolute">
     <origin rpy="0 0 0" xyz="0.290 0 0"/>
     <parent link="link_2"/>
     <child link="link_3"/>
     <axis xyz="0 1 0"/>
-    <limit effort="0" lower="-2.007128639793479" upper="2.6179938779914944" velocity="9.389871375729493"/>
+    <limit effort="100" lower="-2.007128639793479" upper="2.6179938779914944" velocity="9.389871375729493"/>
   </joint>
   <joint name="joint_a4" type="revolute">
     <origin rpy="0 0 0" xyz="0.310 0 0.020"/>
     <parent link="link_3"/>
     <child link="link_4"/>
     <axis xyz="-1 0 0"/>
-    <limit effort="0" lower="-3.2288591161895095" upper="3.2288591161895095" velocity="10.471975511965978"/>
+    <limit effort="100" lower="-3.2288591161895095" upper="3.2288591161895095" velocity="10.471975511965978"/>
   </joint>
   <joint name="joint_a5" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0"/>
     <parent link="link_4"/>
     <child link="link_5"/>
     <axis xyz="0 1 0"/>
-    <limit effort="0" lower="-2.0943951023931953" upper="2.0943951023931953" velocity="10.471975511965978"/>
+    <limit effort="100" lower="-2.0943951023931953" upper="2.0943951023931953" velocity="10.471975511965978"/>
   </joint>
   <joint name="joint_a6" type="revolute">
     <origin rpy="0 0 0" xyz="0.075 0 0"/>
     <parent link="link_5"/>
     <child link="link_6"/>
     <axis xyz="-1 0 0"/>
-    <limit effort="0" lower="-6.1086523819801535" upper="6.1086523819801535" velocity="13.962634015954636"/>
+    <limit effort="100" lower="-6.1086523819801535" upper="6.1086523819801535" velocity="13.962634015954636"/>
   </joint>
   <joint name="joint_a6-tool0" type="fixed">
     <parent link="link_6"/>
