@@ -172,15 +172,16 @@
     <parent link="base_link"/>
     <child link="link_1"/>
     <axis xyz="0 0 -1"/>
-    <dynamics damping="10" friction="100"/>
-    <limit effort="1.0" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
+    <!-- <dynamics damping="10" friction="0"/> -->
+    <limit effort="100" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="joint_a2" type="revolute">
     <origin rpy="0 0 0" xyz="0.020 0 0"/>
     <parent link="link_1"/>
     <child link="link_2"/>
     <axis xyz="0 1 0"/>
-    <limit effort="1.0" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
+    <!-- <dynamics damping="1000" friction="0"/> -->
+    <limit effort="100" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
   </joint>
   <joint name="joint_a3" type="revolute">
     <origin rpy="0 0 0" xyz="0.260 0 0"/>
@@ -240,7 +241,7 @@
       <mass value="0.25"/>
       <origin xyz="0 0 0"/>
       <!--inertia ixx="1.0" ixy="0.0" ixz="0.0"
-               iyy="100.0" iyz="0.0" 
+               iyy="100.0" iyz="0.0"
                izz="1.0" /-->
       <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
     </inertial>
