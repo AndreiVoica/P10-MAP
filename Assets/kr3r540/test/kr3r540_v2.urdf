@@ -27,8 +27,8 @@
         <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/base_link.stl"/>
       </geometry>
       <inertial>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
         <mass value="10"/>
+        <origin rpy="0.000000 0.000000 0.000000" xyz="0.000000 0.000000 0.000000"/>
         <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
       </inertial>
     </collision>
@@ -49,8 +49,8 @@
         <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_1.stl"/>
       </geometry>
       <inertial>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
         <mass value="10"/>
+        <origin rpy="0.000000 0.000000 0.000000" xyz="0.000000 0.000000 0.000000"/>
         <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
       </inertial>
     </collision>
@@ -71,8 +71,8 @@
         <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_2.stl"/>
       </geometry>
       <inertial>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
-        <mass value="12"/>
+        <mass value="10"/>
+        <origin rpy="0.000000 0.000000 0.000000" xyz="0.000000 0.000000 0.000000"/>
         <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
       </inertial>
     </collision>
@@ -93,8 +93,8 @@
         <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_3.stl"/>
       </geometry>
       <inertial>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
         <mass value="10"/>
+        <origin rpy="0.000000 0.000000 0.000000" xyz="0.000000 0.000000 0.000000"/>
         <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
       </inertial>
     </collision>
@@ -115,8 +115,8 @@
         <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_4.stl"/>
       </geometry>
       <inertial>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
         <mass value="10"/>
+        <origin rpy="0.000000 0.000000 0.000000" xyz="0.000000 0.000000 0.000000"/>
         <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
       </inertial>
     </collision>
@@ -137,8 +137,8 @@
         <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_5.stl"/>
       </geometry>
       <inertial>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
         <mass value="10"/>
+        <origin rpy="0.000000 0.000000 0.000000" xyz="0.000000 0.000000 0.000000"/>
         <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
       </inertial>
     </collision>
@@ -159,11 +159,6 @@
         <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_6.stl"/>
       </geometry>
     </collision>
-    <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="3"/>
-      <inertia ixx="1" ixy="0.0" ixz="0.0" iyy="1" iyz="0" izz="1"/>
-    </inertial>
   </link>
   <!-- Following REP199, this frame shall be use to attach EEF or other equipment -->
   <link name="flange"/>
@@ -172,43 +167,42 @@
     <parent link="base_link"/>
     <child link="link_1"/>
     <axis xyz="0 0 -1"/>
-    <dynamics damping="10" friction="100"/>
-    <limit effort="1.0" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
+    <limit effort="0" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="joint_a2" type="revolute">
     <origin rpy="0 0 0" xyz="0.020 0 0"/>
     <parent link="link_1"/>
     <child link="link_2"/>
     <axis xyz="0 1 0"/>
-    <limit effort="1.0" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
+    <limit effort="1000" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
   </joint>
   <joint name="joint_a3" type="revolute">
     <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="link_2"/>
     <child link="link_3"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" lower="-1.9198621771937625" upper="2.705260340591211" velocity="9.389871375729493"/>
+    <limit effort="0" lower="-1.9198621771937625" upper="2.705260340591211" velocity="9.389871375729493"/>
   </joint>
   <joint name="joint_a4" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0.020"/>
     <parent link="link_3"/>
     <child link="link_4"/>
     <axis xyz="-1 0 0"/>
-    <limit effort="100" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
+    <limit effort="0" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
   </joint>
   <joint name="joint_a5" type="revolute">
     <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="link_4"/>
     <child link="link_5"/>
     <axis xyz="0 1 0"/>
-    <limit effort="100" lower="-2.0943951023931953" upper="2.0943951023931953" velocity="10.471975511965978"/>
+    <limit effort="0" lower="-2.0943951023931953" upper="2.0943951023931953" velocity="10.471975511965978"/>
   </joint>
   <joint name="joint_a6" type="revolute">
     <origin rpy="0 0 0" xyz="0.075 0 0"/>
     <parent link="link_5"/>
     <child link="link_6"/>
     <axis xyz="-1 0 0"/>
-    <limit effort="100" lower="-6.1086523819801535" upper="6.1086523819801535" velocity="13.962634015954636"/>
+    <limit effort="0" lower="-6.1086523819801535" upper="6.1086523819801535" velocity="13.962634015954636"/>
   </joint>
   <joint name="joint_a6-tool0" type="fixed">
     <parent link="link_6"/>

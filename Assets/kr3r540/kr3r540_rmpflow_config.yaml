@@ -37,8 +37,8 @@ rmp_params:
         accel_potential_exploder_length_scale: .1
         accel_potential_exploder_eps: 1e-2
     joint_velocity_cap_rmp:
-        max_velocity: 4.
-        velocity_damping_region: 1.5
+        max_velocity: 10.
+        velocity_damping_region: 3.
         damping_gain: 1000.0
         metric_weight: 100.
     target_rmp:
