@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: kuka_kr3_support
+    relative_path: urdf/kr3r540nogripper.urdf
+  srdf:
+    relative_path: config/kuka_kr3r540.srdf
+  package_settings:
+    author_name: Daniel Moreno
+    author_email: dmoren21@student.aau.dk
+    generated_timestamp: 1680508907
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
