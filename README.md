@@ -144,7 +144,8 @@ Note: The asterisk (*) indicates that the specified amount is the minimum requir
 * ROS2 
 * Moveit2
 * Planar Motor Controller API
-See [PMC Python API](/installation/planar_motor_controller_API/how-to-install.md)
+
+See [planar motor controller API documentation](/installation/planar_motor_controller_API/README.md)
 
 
 
