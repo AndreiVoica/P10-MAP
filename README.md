@@ -137,10 +137,6 @@ Some minimum requirements are needed to install Isaac Sim, check the [Link](http
 
 Note: The asterisk (*) indicates that the specified amount is the minimum required, but more is recommended for better performance.
 
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
 
 ### Installation
 
@@ -148,6 +144,7 @@ Note: The asterisk (*) indicates that the specified amount is the minimum requir
 * ROS2 
 * Moveit2
 * Planar Motor Controller API
+See [PMC Python API](/installation/planar_motor_controller_API/how-to-install.md)
 
 
 
