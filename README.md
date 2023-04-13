@@ -145,7 +145,7 @@ Note: The asterisk (*) indicates that the specified amount is the minimum requir
 * Moveit2
 * Planar Motor Controller API
 
-See [planar motor controller API documentation](/installation/planar_motor_controller_API/README.md)
+See [planar motor controller API documentation](/installation/planar_motor_control_API/README.md)
 
 
 
