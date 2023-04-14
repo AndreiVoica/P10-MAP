@@ -134,7 +134,7 @@ Some minimum requirements are needed to install Isaac Sim, check the [Link](http
 | VRAM    | 8GB*                               | 10GB*          | 48GB*                                               |
 
 
-
+Note: GeForce RTX 2060 6GB VRAM is also compatible
 Note: The asterisk (*) indicates that the specified amount is the minimum required, but more is recommended for better performance.
 
 
