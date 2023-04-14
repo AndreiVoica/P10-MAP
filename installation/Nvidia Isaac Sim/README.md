@@ -37,6 +37,8 @@ mkdir -p ~/ros2_ws/src
 cd ~/ros2_ws/src
 ```
 7. Clone the repo (TBD)
-8. ```cd ..
+8. 
+```
+cd ..
 rosdep install -i --from-path src --rosdistro foxy -y
 ```
