@@ -21,7 +21,7 @@ ROS 2 Humble is used only for Moveit2 assistant, since it is not available on Fo
 ```docker pull ubuntu:jammy```
 3. In the terminal run ```docker images``` and copy the IMAGE ID
 
-3a. If you encounter an error related to QT5 not being able to find a display (this will be needed if you are going to use any application with a GUI in docker) run ```xhost local:root``` in the terminal and after run the docker image be using 
+3.1. If you encounter an error related to QT5 not being able to find a display (this will be needed if you are going to use any application with a GUI in docker) run ```xhost local:root``` in the terminal and after run the docker image by using and skip the step 5.
 ```
 docker run -it --rm \
     --network host \
@@ -30,4 +30,13 @@ docker run -it --rm \
     <IMAGE ID>
 ```
 4. Run the docker image using ```docker run -it <IMAGE ID>```
-5. 
+5. Start installing ROS 2 Humble following [this tutorial](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
+6. Create a colcon workspace ```source /opt/ros/humble/setup.bash```
+```
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+```
+7. Clone the repo (TBD)
+8. ```cd ..
+rosdep install -i --from-path src --rosdistro foxy -y
+```
