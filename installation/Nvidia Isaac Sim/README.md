@@ -40,5 +40,6 @@ cd ~/ros2_ws/src
 8. 
 ```
 cd ..
-rosdep install -i --from-path src --rosdistro foxy -y
+rosdep install -i --from-path src --rosdistro humble -y
 ```
+9. 
