@@ -20,6 +20,7 @@ ROS 2 Humble is used only for Moveit2 assistant, since it is not available on Fo
 2. Open a terminal and run 
 ```docker pull ubuntu:jammy```
 3. In the terminal run ```docker images``` and copy the IMAGE ID
+
 3a. If you encounter an error related to QT5 not being able to find a display (this will be needed if you are going to use any application with a GUI in docker) run ```xhost local:root``` in the terminal and after run the docker image be using 
 ```
 docker run -it --rm \
