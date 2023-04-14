@@ -17,5 +17,6 @@ Follow the [ROS2 Foxy installation method](https://docs.ros.org/en/foxy/Installa
 ROS 2 Humble is used only for Moveit2 assistant, since it is not available on Foxy.
 
 1. Install Docker following [this tutorial](https://docs.docker.com/engine/install/ubuntu/);
-2. Open a terminal and run '''docker pull ubuntu:jammy''';
-3.
+2. Open a terminal and run 
+'''docker pull ubuntu:jammy'''
+3. 
