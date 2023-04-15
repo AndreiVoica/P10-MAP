@@ -20,15 +20,6 @@ ROS 2 Humble is used only for Moveit2 assistant, since it is not available on Fo
 2. Open a terminal and run 
 ```docker pull ubuntu:jammy```
 3. In the terminal run ```docker images``` and copy the IMAGE ID
-
-3.1. If you encounter an error related to QT5 not being able to find a display (this will be needed if you are going to use any application with a GUI in docker) run ```xhost local:root``` in the terminal and after run the docker image by using and skip the step 5. Recommended to add ```xhost local:root``` in your .bashrc.
-```
-docker run -it --rm \
-    --network host \
-    -e DISPLAY=$DISPLAY \
-    -v /tmp/.X11-unix/:/tmp/.X11-unix \
-    IMAGE ID
-```
 4. Run the docker image using ```docker run -it IMAGE ID```
 5. Start installing ROS 2 Humble following [this tutorial](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
 6. Install moveit2 setup assistant ```sudo apt install ros-humble-moveit```
@@ -43,3 +34,22 @@ cd ~/ros2_ws/src
 cd ..
 rosdep install -i --from-path src --rosdistro humble -y
 ```
+
+# Using Moveit2
+
+# Converting ROS1 packages to ROS2 
+To be able to build using colcon, the packages have to be converted to support it.
+
+# Troubleshooting
+## QT unable to find display in while trying to launch a GUI application (such as rviz2 or moveit setup assistant)
+If you encounter an error related to QT5 not being able to find a display (this will be needed if you are going to use any application with a GUI in docker) run ```xhost local:root``` in the terminal and after run the docker image by using the command below and skip step 4. Recommended to add ```xhost local:root``` in your .bashrc.
+```
+docker run -it --rm \
+    --network host \
+    -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix/:/tmp/.X11-unix \
+    IMAGE ID
+```
+
+## URDF files require double
+If you have for example velocity = 2.0, try velocity = 2.00001
