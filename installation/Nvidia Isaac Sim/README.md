@@ -34,11 +34,12 @@ cd ~/ros2_ws/src
 cd ..
 rosdep install -i --from-path src --rosdistro humble -y
 ```
+# Converting ROS1 packages to ROS2 
+To be able to build using colcon, the packages have to be converted to support it.
 
 # Using Moveit2
 
-# Converting ROS1 packages to ROS2 
-To be able to build using colcon, the packages have to be converted to support it.
+# Connecting Moveit2 to Isaac using a custom robot configuration
 
 # Troubleshooting
 ## QT unable to find display in while trying to launch a GUI application (such as rviz2 or moveit setup assistant)
