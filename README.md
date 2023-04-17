@@ -134,13 +134,10 @@ Some minimum requirements are needed to install Isaac Sim, check the [Link](http
 | VRAM    | 8GB*                               | 10GB*          | 48GB*                                               |
 
 
+Note: GeForce RTX 2060 6GB VRAM is also compatible.
 
 Note: The asterisk (*) indicates that the specified amount is the minimum required, but more is recommended for better performance.
 
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
 
 ### Installation
 
@@ -148,6 +145,8 @@ Note: The asterisk (*) indicates that the specified amount is the minimum requir
 * ROS2 
 * Moveit2
 * Planar Motor Controller API
+
+See [planar motor controller API documentation](/installation/planar_motor_control_API/README.md)
 
 
 
