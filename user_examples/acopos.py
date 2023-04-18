@@ -54,12 +54,16 @@ class Acopos(BaseSample):
         self._number_shuttles = 8
         self._shuttle_position = np.array([0.06, 0.06, 1.07])  # Gf.Vec3f(0.5, 0.0, 0.0)
         #self._shuttle_orientation = np.array([np.cos(setup_orientation/2), 0, 0, np.sin(setup_orientation/2)])
-
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
         self._target = np.array([0.0, 0.52])
         self._shuttle_scale = 0.01
 
         self.translate = 0
+
+        # Shuttles Grid:
+        self._grid_position = np.array([1.2877, -1.0415, 0.0])  # Gf.Vec3f(0.5, 0.0, 0.0)
+        self._grid_orientation = np.array([np.cos(setup_orientation/2), 0, 0, np.sin(setup_orientation/2)]) #Rotates 90 degrees around z-axis
+
 
         # # Add shuttles path dictionary
         # shuttle_paths = {}
@@ -99,17 +103,14 @@ class Acopos(BaseSample):
         add_reference_to_stage(usd_path=self.asset_paths["lab_setup"], prim_path="/World")
         world.scene.add(GeometryPrim(prim_path="/World", name=f"lab_setup_ref_geom", collision=True))
 
-        #add_shuttles_assets
+        # Add Xform reference for the shuttles
+        world.scene.add(XFormPrim(prim_path="/World/LabSetup/Grid", name=f"Grid"))
+
+        # Add shuttles Assets
         for i in range(self._number_shuttles):
-            add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/shuttle_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/shuttle_{}".format(i+1), name="shuttle_{}_ref_geom".format(i+1), collision=True))
+            add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1))
+            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1), name="shuttle_{}_ref_geom".format(i+1), collision=True))
 
-
-
-
-        # add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/shuttle")
-        # world.scene.add(GeometryPrim(prim_path="/World/LabSetup/shuttle", name=f"shuttle_ref_geom", collision=True))
-       
         return
 
     # Here we assign the class's variables this function is called after load button is pressed 
@@ -117,16 +118,20 @@ class Acopos(BaseSample):
     # one physics time step to propagate appropriate physics handles which are needed to retrieve
     # many physical properties of the different objects
     async def setup_post_load(self):
-        self._world = self.get_world()
 
+        # Load World and Assets
+        self._world = self.get_world()
         self._world.scene.enable_bounding_boxes_computations()
+
         await self._add_lab_setup()
+        await self._add_shuttles_grid()
         for i in range(self._number_shuttles):
             await self._add_shuttle(i)
 
+
         stage = omni.usd.get_context().get_stage()
         for shuttle_number in range(self._number_shuttles):
-            shuttle_path = "/World/LabSetup/shuttle_{}".format(shuttle_number + 1)
+            shuttle_path = "/World/LabSetup/Grid/shuttle_{}".format(shuttle_number + 1)
             prim = stage.GetPrimAtPath(shuttle_path)
             if prim:
                 key_name = "prim_{}".format(shuttle_number + 1)
@@ -188,6 +193,15 @@ class Acopos(BaseSample):
         # self._lab_setup_height = zmax
         self._lab_setup_ref_geom.set_collision_approximation("none")
         #self._convexIncludeRel.AddTarget(self._table_ref_geom.prim_path)
+
+    async def _add_shuttles_grid(self):
+        ##shuttles grid
+        self._shuttles_grid_ref_geom = self._world.scene.get_object(f"Grid")
+        #self._lab_setup_ref_geom.set_local_scale(np.array([self._lab_setup_scale]))
+        self._shuttles_grid_ref_geom.set_world_pose(position=self._grid_position, 
+                                                orientation=self._grid_orientation)
+        self._shuttles_grid_ref_geom.set_default_state(position=self._grid_position,
+                                                orientation=self._grid_orientation)
 
     # Add shuttles to the scene
     async def _add_shuttle(self, shuttle_number):
@@ -257,10 +271,6 @@ class Acopos(BaseSample):
 
              
              
-
-
-
-
 
 ############################################################################################################
 
