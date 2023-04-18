@@ -10,10 +10,8 @@ from omni.isaac.examples.base_sample import BaseSample
 from omni.isaac.core import World
 from omni.isaac.core.prims import GeometryPrim, XFormPrim
 import omni.kit.commands
-from pxr import Sdf, UsdPhysics
-
-# Can be used to create a new cube or to point to an already existing cube in stage.
-from omni.isaac.core.objects import DynamicCuboid
+from pxr import Sdf, UsdPhysics, Gf
+from omni.isaac.core.utils.rotations import euler_angles_to_quat
 import numpy as np
 
 from omni.isaac.core.utils.nucleus import get_assets_root_path, get_server_path
@@ -136,6 +134,11 @@ class Acopos(BaseSample):
             if prim:
                 key_name = "prim_{}".format(shuttle_number + 1)
                 self.prim_dict[key_name] = prim
+                #prim.AddRotateXYZOp()
+
+                # AddXformOp(prim, prim.GetAttribute('xformOp:rotateXYZ').Get())
+                # #AddRotateXYZOp(prim, prim.GetAttribute('xformOp:rotateXYZ').Get())
+
             else:
                 print("Error: shuttle prim not found at path {}".format(shuttle_path))
 
@@ -160,7 +163,12 @@ class Acopos(BaseSample):
         xid=2
         bot.activate_xbots()
 
+        # bot.linear_motion_si(shuttle_number, float(xbot_positions[shuttle_number][0] + 0.01), float(xbot_positions[shuttle_number][1]), 0.2, 10)
+        
+        bot.linear_motion_si(xid, 0.06, 0.06, 0.2, 10)
+
         self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
+        
 
 
 
@@ -219,6 +227,7 @@ class Acopos(BaseSample):
         #self._convexIncludeRel.AddTarget(self._shuttle_ref_geom.prim_path)
 
 
+
     def sim_xbots_movement(self, step_size):
         #print("step_size: ", step_size)
         #print(self.translate)
@@ -249,28 +258,58 @@ class Acopos(BaseSample):
 
     # Read shuttles position in simulation
     def read_xbots_positions(self, step_size):
-        # for shuttle_number in range(self._number_shuttles):        
-        #     prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
-
-        #     current_pos_xy = prim.GetAttribute('xformOp:translate').Get()
-        #     prim.GetAttribute('xformOp:translate').Set(current_pos_xy)
 
         xbot_list = bot.get_all_xbot_info(1)
-        xbot_positions = [(xbot.x_pos, xbot.y_pos, xbot.z_pos) for xbot in xbot_list]
+        xbot_positions = [(xbot.x_pos, xbot.y_pos, xbot.z_pos, xbot.rx_pos, xbot.ry_pos, xbot.rz_pos) for xbot in xbot_list]
         print(xbot_positions)
 
         for shuttle_number in range(self._number_shuttles):        
-             prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
+            prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
 
-        #     current_pos_xy = prim.GetAttribute('xformOp:translate').Get()
-             prim.GetAttribute('xformOp:translate').Set((xbot_positions[shuttle_number][0], 
-                                                        xbot_positions[shuttle_number][1] ,
-                                                        xbot_positions[shuttle_number][2] + 1.06))
-             
-             #prim.GetAttribute('xformOp:translate').Set(xbot_positions[shuttle_number])
+            prim.GetAttribute('xformOp:translate').Set((xbot_positions[shuttle_number][0], 
+                                                    xbot_positions[shuttle_number][1] ,
+                                                    xbot_positions[shuttle_number][2] + 1.06))
+            
+            quat_prim = (euler_angles_to_quat([xbot_positions[shuttle_number][3], 
+                                            xbot_positions[shuttle_number][4],
+                                            xbot_positions[shuttle_number][5]]))
+            quat = Gf.Quatd(*quat_prim)
+
+            prim.GetAttribute('xformOp:orient').Set(quat)
+   
+
+    # x_pos : float :
+    #     X Position in m
+    # y_pos : float :
+    #     Y Position in m
+    # z_pos : float :
+    #     Z Position in m
+    # rx_pos : float :
+    #     Rx Position in rad
+    # ry_pos : float :
+    #     Ry Position in rad
+    # rz_pos : float :
+    #     Rz Position in rad
+    # xbot_state : XbotState :
+    #     Xbot state
+    # xbot_id : int :
+    #     Xbot ID
+    # xbot_type : XbotType :
+    #     The type of the XBot
 
              
-             
+    
+        # xbot_list = bot.get_all_xbot_info(1)
+        # xbot_positions = [(xbot.x_pos, xbot.y_pos, xbot.z_pos) for xbot in xbot_list]
+        # print(xbot_positions)
+
+        # for shuttle_number in range(self._number_shuttles):        
+        #      prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
+
+        # #     current_pos_xy = prim.GetAttribute('xformOp:translate').Get()
+        #      prim.GetAttribute('xformOp:translate').Set((xbot_positions[shuttle_number][0], 
+        #                                                 xbot_positions[shuttle_number][1] ,
+        #                                                 xbot_positions[shuttle_number][2] + 1.06))
 
 ############################################################################################################
 
