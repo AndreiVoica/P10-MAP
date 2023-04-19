@@ -17,6 +17,8 @@ import numpy as np
 from omni.isaac.core.utils.nucleus import get_assets_root_path, get_server_path
 from omni.isaac.core.utils.stage import add_reference_to_stage
 from omni.isaac.core.robots import Robot
+from omni.isaac.core.utils.types import ArticulationAction
+
 import carb
 
 from pmclib import system_commands as sys   # PMC System related commands
@@ -40,9 +42,9 @@ class Acopos(BaseSample):
 
         # Shuttles:
         self._number_shuttles = 8
-        self._shuttle_position = np.array([0.06, 0.06, 1.07])  # Gf.Vec3f(0.5, 0.0, 0.0)
+        self._shuttle_position = np.array([1.2277, -0.9815, 1.07])  # Gf.Vec3f(0.5, 0.0, 0.0)
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
-        self._target = np.array([0.0, 0.52])
+        self._target = np.array([0.8, 0.52])
         self._shuttle_scale = 0.01
 
         # Shuttles Grid:
@@ -59,7 +61,12 @@ class Acopos(BaseSample):
 
         self.prim_dict = {}
 
+        self.control_switch = 0 # 0: Sim, 1: PMC
+
         return
+
+
+
 
     # This function is called to setup the assets in the scene for the first time
     # Class variables should not be assigned here, since this function is not called
@@ -80,7 +87,10 @@ class Acopos(BaseSample):
         # Add shuttles references
         for i in range(self._number_shuttles):
             add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1), name="shuttle_{}_ref_geom".format(i+1), collision=True))
+            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1), 
+                                         name="shuttle_{}_ref_geom".format(i+1), collision=True))
+            # world.scene.add(Robot(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1), 
+            #                       name="shuttle_{}_ref_geom".format(i+1)))
 
         return
 
@@ -100,6 +110,7 @@ class Acopos(BaseSample):
         for i in range(self._number_shuttles):
             await self._add_shuttle(i)
 
+
         # Shuttles Prim Dictionary
         stage = omni.usd.get_context().get_stage()
         for shuttle_number in range(self._number_shuttles):
@@ -111,32 +122,19 @@ class Acopos(BaseSample):
             else:
                 print("Error: shuttle prim not found at path {}".format(shuttle_path))
 
-        # Connect to PMC
-        self.connect_pmc()
 
-        # bot.linear_motion_si(shuttle_number, float(xbot_positions[shuttle_number][0] + 0.01), float(xbot_positions[shuttle_number][1]), 0.2, 10)
-        xid= 1
-        bot.linear_motion_si(xid, 0.06, 0.06, 0.2, 10)
 
-        self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
-    
+        if self.control_switch == 0:
+            self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement)
+        elif self.control_switch == 1:
+            self.connect_pmc()  # Connect to PMC
+            self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
+            self._world.add_physics_callback("sim_step", callback_fn=self.send_xbots_positions)
 
         return
 
-
-
-    async def setup_pre_reset(self):
-        return
-
-    async def setup_post_reset(self):
-        return
-
-    def world_cleanup(self):
-        return
-    
-
+        # Add Lab Setup reference 
     async def _add_lab_setup(self):
-        ##lab setup
         self._lab_setup_ref_geom = self._world.scene.get_object(f"lab_setup_ref_geom")
         self._lab_setup_ref_geom.set_local_scale(np.array([self._lab_setup_scale]))
         self._lab_setup_ref_geom.set_world_pose(position=self._lab_setup_position, 
@@ -163,9 +161,32 @@ class Acopos(BaseSample):
     async def _add_shuttle(self, shuttle_number):
         self._shuttle_ref_geom = self._world.scene.get_object(f"shuttle_{shuttle_number+1}_ref_geom")
         self._shuttle_ref_geom.set_local_scale(np.array([self._shuttle_scale]))
-        self._shuttle_ref_geom.set_world_pose(position= self._shuttle_position + (0.121 * (shuttle_number), 0, 0))
+        self._shuttle_ref_geom.set_world_pose(position= self._shuttle_position + (-0.121 * (shuttle_number), 0, 0))
         self._shuttle_ref_geom.set_default_state(position=self._shuttle_position)
-        self._shuttle_ref_geom.set_collision_approximation("none")
+        self._shuttle_ref_geom.set_collision_approximation("none")  
+        #self._shuttle_articulation_controller = self._shuttle.get_articulation_controller()
+  
+    async def on_sim_control_event_async(self):
+        world = self.get_world()
+        world.add_physics_callback("sim_step", self.sim_xbots_movement)
+        await world.play_async()
+        return
+
+    # def on_pmc_connection_event(self):
+    #     self.connect_pmc()
+    #     return
+
+    async def setup_pre_reset(self):
+        return
+
+    async def setup_post_reset(self):
+        return
+
+    def world_cleanup(self):
+        return
+    
+
+
 
     def sim_xbots_movement(self, step_size):
         #print("step_size: ", step_size)
@@ -173,27 +194,35 @@ class Acopos(BaseSample):
         
         #stage = omni.usd.get_context().get_stage()
 
-        for shuttle_number in range(self._number_shuttles):        
-            prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
+        max_speed = 3.0 # m/s
+        max_accel = 10.0 # m/s^2
 
+        for shuttle_number in range(1):   
+        # for shuttle_number in range(self._number_shuttles):      
+            prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
 
             current_pos = prim.GetAttribute('xformOp:translate').Get()
 
             # Move cube to the right
-            if self._target[0] < (current_pos[0]-self._shuttle_position[0]):
-                prim.GetAttribute('xformOp:translate').Set((current_pos)+(0.01, 0.0, 0.0))
+            if (self._target[1] + 0.1) < current_pos[0]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos)-(step_size*max_speed, 0.0, 0.0))
+                continue
             # Move cube to the left
-            elif self._target[0] > (current_pos[0]-self._shuttle_position[0]):
-                prim.GetAttribute('xformOp:translate').Set((current_pos)-(0.01, 0.0, 0.0))
+            elif (self._target[1] - 0.1) > current_pos[0]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos)+(step_size*max_speed, 0.0, 0.0))
+                continue
             
-            current_pos = prim.GetAttribute('xformOp:translate').Get()
+            #current_pos = prim.GetAttribute('xformOp:translate').Get()
 
             # Move cube up
-            if self._target[1] > (current_pos[1]-self._shuttle_position[1]):
-                prim.GetAttribute('xformOp:translate').Set((current_pos)+(0.0, 0.01, 0.0))
+            if (self._target[0] + 0.1) > current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos)+(0.0, step_size*max_speed, 0.0))
+                continue
             # Move cube down
-            elif self._target[1] < (current_pos[1]-self._shuttle_position[1]):
-                prim.GetAttribute('xformOp:translate').Set((current_pos)-(0.0, 0.01, 0.0))
+            elif (self._target[0] - 0.1) < current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos)-(0.0, step_size*max_speed, 0.0))
+                continue
+
 
     # Read shuttles position and orientation from physical setup
     def read_xbots_positions(self, step_size):
@@ -221,6 +250,55 @@ class Acopos(BaseSample):
             # Set Orientation of shuttle
             prim.GetAttribute('xformOp:orient').Set(quat)
 
+    def send_xbots_positions(self, step_size):
+
+        xid = 6
+        prim = self.prim_dict["prim_{}".format(xid)]
+
+        # Set position of shuttle
+        target = prim.GetAttribute('xformOp:translate').Get()
+        print(target)
+
+       
+        # Don't send commands while the xbot is moving
+        if bot.get_xbot_status(xbot_id=xid).xbot_state is pmc_types.XbotState.XBOT_IDLE:
+            sample_motions(input_id=xid)
+
+        #bot.linear_motion_si(6,target[0], target[1], 0.5, 10)
+
+        # for shuttle_number in range(self._number_shuttles):        
+        #     prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
+
+        #     # Set position of shuttle
+        #     prim.GetAttribute('xformOp:translate').Set((xbot_positions[shuttle_number][0], 
+        #                                             xbot_positions[shuttle_number][1] ,
+        #                                             xbot_positions[shuttle_number][2] + 1.06))
+            
+        #     # Transform orientation from euler angles to quaternion
+        #     quat_prim = (euler_angles_to_quat([xbot_positions[shuttle_number][3], 
+        #                                     xbot_positions[shuttle_number][4],
+        #                                     xbot_positions[shuttle_number][5]]))
+        #     quat = Gf.Quatd(*quat_prim)
+        
+        #     # Set Orientation of shuttle
+        #     prim.GetAttribute('xformOp:orient').Set(quat)
+
+    def sample_motions(self, input_id):
+        max_speed = 1.0
+        max_accel = 10.0
+        bot.linear_motion_si(xbot_id=input_id, target_x=0.18, target_y=0.06,
+                            max_speed=max_speed, max_accel=max_accel)
+        bot.linear_motion_si(xbot_id=input_id, target_x=0.18, target_y=0.66,
+                            max_speed=max_speed, max_accel=max_accel)
+        bot.linear_motion_si(xbot_id=input_id, target_x=0.42, target_y=0.66,
+                            max_speed=max_speed, max_accel=max_accel)
+        bot.linear_motion_si(xbot_id=input_id, target_x=0.42, target_y=0.06,
+                            max_speed=max_speed, max_accel=max_accel)
+    
+    def wait_for_xbot_done(xid):
+        while bot.get_xbot_status(xbot_id=xid).xbot_state is not pmc_types.XbotState.XBOT_IDLE:
+            time.sleep(0.5)
+
     def connect_pmc(self):
 
         # Connect to PMC
@@ -238,7 +316,9 @@ class Acopos(BaseSample):
 
         # Activate xBots
         bot.activate_xbots()
-        
+    
+
+
 
 ############################################################################################################
     
