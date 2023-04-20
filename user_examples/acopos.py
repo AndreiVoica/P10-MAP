@@ -25,6 +25,7 @@ from pmclib import system_commands as sys   # PMC System related commands
 from pmclib import xbot_commands as bot     # PMC Mover related commands
 from pmclib import pmc_types                # PMC API Types
 import time
+import random
 
 
 class Acopos(BaseSample):
@@ -34,6 +35,7 @@ class Acopos(BaseSample):
         # SCENE GEOMETRY
         # env (group) spacing:
         self._env_spacing = 2.0
+        self.last_update_time = time.time()
 
         # Lab Setup:
         self._lab_setup_position = np.array([0.0, 0.0, 0.0])  # Gf.Vec3f(0.5, 0.0, 0.0)
@@ -61,7 +63,7 @@ class Acopos(BaseSample):
 
         self.prim_dict = {}
 
-        self.control_switch = 0 # 0: Sim, 1: PMC
+        self.control_switch = 1 # 0: Sim, 1: PMC
 
         return
 
@@ -123,13 +125,16 @@ class Acopos(BaseSample):
                 print("Error: shuttle prim not found at path {}".format(shuttle_path))
 
 
-
+        # Control Switch
         if self.control_switch == 0:
             self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement)
         elif self.control_switch == 1:
             self.connect_pmc()  # Connect to PMC
             self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
-            self._world.add_physics_callback("sim_step", callback_fn=self.send_xbots_positions)
+            self._world.add_physics_callback("sim_step_move", callback_fn=self.send_xbots_positions)
+
+
+
 
         return
 
@@ -230,7 +235,8 @@ class Acopos(BaseSample):
         # Read info for every shuttle
         xbot_list = bot.get_all_xbot_info(1)
         xbot_positions = [(xbot.x_pos, xbot.y_pos, xbot.z_pos, 
-                           xbot.rx_pos, xbot.ry_pos, xbot.rz_pos) for xbot in xbot_list]
+                           xbot.rx_pos, xbot.ry_pos, xbot.rz_pos,
+                           xbot.xbot_state) for xbot in xbot_list]
 
         # Set position and orientation of shuttles
         for shuttle_number in range(self._number_shuttles):        
@@ -250,50 +256,89 @@ class Acopos(BaseSample):
             # Set Orientation of shuttle
             prim.GetAttribute('xformOp:orient').Set(quat)
 
+            
+
+
+
     def send_xbots_positions(self, step_size):
 
-        xid = 6
-        prim = self.prim_dict["prim_{}".format(xid)]
+        xbot_ids = [1, 2, 3, 4, 5, 6, 7, 8]
 
-        # Set position of shuttle
-        target = prim.GetAttribute('xformOp:translate').Get()
-        print(target)
+        # Only update the Xbots if at least 2 seconds have passed since the last update
+        if time.time() - self.last_update_time >= 2:
 
-       
-        # Don't send commands while the xbot is moving
-        if bot.get_xbot_status(xbot_id=xid).xbot_state is pmc_types.XbotState.XBOT_IDLE:
-            sample_motions(input_id=xid)
+            #print(bot.get_xbot_status(xbot_id=xid).xbot_state)
 
-        #bot.linear_motion_si(6,target[0], target[1], 0.5, 10)
+            xbot_list = bot.get_all_xbot_info(1)
+            xbot_positions = [(xbot.x_pos, xbot.y_pos, xbot.z_pos, 
+                            xbot.rx_pos, xbot.ry_pos, xbot.rz_pos,
+                            xbot.xbot_state) for xbot in xbot_list]
 
-        # for shuttle_number in range(self._number_shuttles):        
-        #     prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
+            # Don't send commands while the xbots are moving
+            if all(xbot_state[6] == pmc_types.XbotState.XBOT_IDLE for xbot_state in xbot_positions):
+                # Get random unique targets for each shuttle
+                targets_x, targets_y = self.create_random_coordinates(self._number_shuttles) 
+                print("target_x ", targets_x)
+                print("target_y ", targets_y)
+                bot.auto_driving_motion_si(8, xbot_ids=xbot_ids, targets_x=targets_x, targets_y=targets_y)
+            else:
+                print("Xbots are moving")
 
-        #     # Set position of shuttle
-        #     prim.GetAttribute('xformOp:translate').Set((xbot_positions[shuttle_number][0], 
-        #                                             xbot_positions[shuttle_number][1] ,
-        #                                             xbot_positions[shuttle_number][2] + 1.06))
-            
-        #     # Transform orientation from euler angles to quaternion
-        #     quat_prim = (euler_angles_to_quat([xbot_positions[shuttle_number][3], 
-        #                                     xbot_positions[shuttle_number][4],
-        #                                     xbot_positions[shuttle_number][5]]))
-        #     quat = Gf.Quatd(*quat_prim)
+            self.last_update_time = time.time()
+
+
+
+
+        # if bot.get_xbot_status(xbot_id=xid).xbot_state is pmc_types.XbotState.XBOT_IDLE:
+        #     #self.sample_motions(input_id=xid)
+        #     bot.auto_driving_motion_si(8, xbot_ids=xbot_ids, targets_x=targets_x, targets_y=targets_y)
+        # # Recover Disabled xbot
+        # elif bot.get_xbot_status(xbot_id=xid).xbot_state is pmc_types.XbotState.XBOT_DISABLED:
+        #     bot.recover_accident_xbot(xbot_id=xid)
+        #     print("Recovering xbot: ", xid)
+
+
+    def create_random_coordinates(self, num_shuttles):
         
-        #     # Set Orientation of shuttle
-        #     prim.GetAttribute('xformOp:orient').Set(quat)
+        x_coords = []
+        y_coords = []
+        coords_dict = {}
+
+        for i in range(num_shuttles):
+            while True:
+                x = random.randint(0, 6) * 0.12 + 0.06
+                y = random.randint(0, 8) * 0.12 + 0.06
+                if (x, y) not in coords_dict:
+                    coords_dict[(x, y)] = 1
+                    break
+                    
+            x_coords.append(x)
+            y_coords.append(y)
+        
+        return x_coords, y_coords
+
 
     def sample_motions(self, input_id):
         max_speed = 1.0
         max_accel = 10.0
         bot.linear_motion_si(xbot_id=input_id, target_x=0.18, target_y=0.06,
                             max_speed=max_speed, max_accel=max_accel)
-        bot.linear_motion_si(xbot_id=input_id, target_x=0.18, target_y=0.66,
+        bot.linear_motion_si(xbot_id=input_id, target_x=0.18, target_y=0.90,
                             max_speed=max_speed, max_accel=max_accel)
-        bot.linear_motion_si(xbot_id=input_id, target_x=0.42, target_y=0.66,
+        bot.linear_motion_si(xbot_id=input_id, target_x=0.66, target_y=0.90,
                             max_speed=max_speed, max_accel=max_accel)
-        bot.linear_motion_si(xbot_id=input_id, target_x=0.42, target_y=0.06,
+        bot.linear_motion_si(xbot_id=input_id, target_x=0.66, target_y=0.06,
                             max_speed=max_speed, max_accel=max_accel)
+
+        # bot.rotary_motion_timed_spin(xbot_id=input_id,rot_time=3, target_rz=3.14,
+        #                              max_speed=3.0, max_accel=max_accel)
+
+        # bot.linear_motion_si(xbot_id=input_id, target_x=0.60, target_y=0.36,
+        #                     max_speed=max_speed, max_accel=max_accel)
+        # bot.rotary_motion_timed_spin(xbot_id=input_id,rot_time=3, target_rz=3.14,
+        #                              max_speed=3.0, max_accel=max_accel)
+        
+        
     
     def wait_for_xbot_done(xid):
         while bot.get_xbot_status(xbot_id=xid).xbot_state is not pmc_types.XbotState.XBOT_IDLE:
