@@ -46,14 +46,27 @@ class MAPs(BaseSample):
         # Shuttles:
         self._number_shuttles = 8
         self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
+        #self._shuttle_position = np.array([0.0, 0.0, 1.07])
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
         self._target = np.array([0.8, 0.52])
         self._shuttle_scale = 0.01
+
+        # Flyways:
+        # DEFINE FLYWAYS MATRIX
+        self.flyways_matrix = [[1, 1, 1],
+                               [1, 1, 1],
+                               [1, 1, 1], 
+                               [1, 1, 1]]
+        
+        self._flyway_position = np.array([1.165, -0.92398, 0.99302])
+        self._flyway_orientation = np.array([0, 0, 0, 1])
+        self._flyway_scale = 0.01
 
         # Shuttles Grid:
         self._grid_position = np.array([1.2877, -1.0415, 0.0])
         shuttle_orientation = np.pi/2
         self._grid_orientation = np.array([np.cos(shuttle_orientation/2), 0, 0, np.sin(shuttle_orientation/2)]) #Rotates 90 degrees around z-axis
+
 
         # USD asset paths:
         self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
@@ -61,9 +74,11 @@ class MAPs(BaseSample):
             "acopos_setup": self.asset_folder + "AcoposEnv_v1.usd", # Table + Acopos Matrix
             "kr3": self.asset_folder + "kr3r540/kr3r540_v3/kr3r540_v3.usd",
             "kr4": self.asset_folder + "kr4r600/kr4r600_v1/kr4r600_v1.usd", 
+            "flyway": self.asset_folder + "flyways/flyway_segment.usd",
             "shuttle": self.asset_folder + "120x120x10/acopos_shuttle_120.usd",
             #"lab_setup": self.asset_folder + "Lab_setup_v2.usd" # Lab Setup with robots
-            "lab_setup": self.asset_folder + "Lab_setup_v1.usd"  # Lab Setup without robots
+            #"lab_setup": self.asset_folder + "Lab_setup_v1.usd"  # Lab Setup without robots
+            "lab_setup": self.asset_folder + "Lab_setup_v0.usd" # Lab Setup without robots or Acopos Matrix
         }
 
         # DEFINE STATIONS
@@ -128,6 +143,16 @@ class MAPs(BaseSample):
         # Add Xform reference for the shuttles
         world.scene.add(XFormPrim(prim_path="/World/LabSetup/Grid", name=f"Grid"))
 
+        # Add Xform reference for the flyways
+        for i in range(len(self.flyways_matrix)):
+            for j in range(len(self.flyways_matrix[i])):
+                if self.flyways_matrix[i][j] == 1:
+                    add_reference_to_stage(usd_path=self.asset_paths["flyway"],
+                                           prim_path="/World/LabSetup/Grid/flyway_{}{}".format((i+1),(j+1)))
+                    world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/flyway_{}{}".format((i+1),(j+1)),
+                                                 name="flyway_{}{}_ref_geom".format(i+1, j+1), collision=True))
+
+
         # Add Xform reference for each station
         for i in range(len(self.station_info)):
             world.scene.add(XFormPrim(prim_path="/World/LabSetup/Station_{}".format(i+1), name="Station_{}".format(i+1)))
@@ -157,7 +182,13 @@ class MAPs(BaseSample):
 
         # Add USD Assets
         await self._add_lab_setup()
-        await self._add_shuttles_grid()
+
+        for i in range(len(self.flyways_matrix)):
+            for j in range(len(self.flyways_matrix[i])):
+                if self.flyways_matrix[i][j] == 1:
+                    print("Performing action on element at position", i, j)
+                    await self._add_flyway(i, j)
+
         for i in range(len(self.station_info)):
             await self._add_station(i)
         for i in range(self._number_shuttles):
@@ -178,6 +209,7 @@ class MAPs(BaseSample):
 
         # Control Switch
         if self.control_switch == 0:
+            self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
             self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement)
         elif self.control_switch == 1:
             self.connect_pmc()  # Connect to PMC
@@ -202,6 +234,15 @@ class MAPs(BaseSample):
         self._lab_setup_ref_geom.set_collision_approximation("none")
         #self._convexIncludeRel.AddTarget(self._table_ref_geom.prim_path)
 
+    # Add flyways to the scene
+    async def _add_flyway(self, x, y):
+        self._flyway_ref_geom = self._world.scene.get_object(f"flyway_{x+1}{y+1}_ref_geom")
+        self._flyway_ref_geom.set_local_scale(np.array([self._flyway_scale]))
+        self._flyway_ref_geom.set_world_pose(position = self._flyway_position + (-0.24 * (x), +0.24 * (y), 0))
+        self._flyway_ref_geom.set_default_state(position = self._flyway_position)
+        self._flyway_ref_geom.set_collision_approximation("none")
+
+
     # Add xForm shuttles reference
     async def _add_shuttles_grid(self):
         self._shuttles_grid_ref_geom = self._world.scene.get_object(f"Grid")
@@ -217,8 +258,6 @@ class MAPs(BaseSample):
         self._shuttle_ref_geom.set_world_pose(position= self._shuttle_position + (-0.121 * (shuttle_number), 0, 0))
         self._shuttle_ref_geom.set_default_state(position=self._shuttle_position)
         self._shuttle_ref_geom.set_collision_approximation("none")
-        #self._shuttle_articulation_controller = self._shuttle.get_articulation_controller()
-
 
     async def _add_station(self, station_number):
         station_number =station_number + 1
@@ -241,10 +280,6 @@ class MAPs(BaseSample):
         await world.play_async()
         return
 
-    # def on_pmc_connection_event(self):
-    #     self.connect_pmc()
-    #     return
-
     async def setup_pre_reset(self):
         return
 
@@ -255,8 +290,6 @@ class MAPs(BaseSample):
         return
 
 
-
-
     def sim_xbots_movement(self, step_size):
         #print("step_size: ", step_size)
         #print(self.translate)
@@ -265,31 +298,39 @@ class MAPs(BaseSample):
 
         max_speed = 3.0 # m/s
         max_accel = 10.0 # m/s^2
+        move_increment = step_size * max_speed
 
-        for shuttle_number in range(1):
-        # for shuttle_number in range(self._number_shuttles):
+        # Random targets for every shuttle
+        # targets_x, targets_y = self.create_random_coordinates(self._number_shuttles)
+
+        #for shuttle_number in range(1):
+        for shuttle_number in range(self._number_shuttles):
             prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
 
-            current_pos = prim.GetAttribute('xformOp:translate').Get()
+            current_pos = prim.GetAttribute('xformOp:translate').Get() 
+            print("current pos: ", current_pos)
+            print("target_y", self.targets_y[shuttle_number])
 
-            # Move cube to the right
-            if (self._target[1] + 0.1) < current_pos[0]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos)-(step_size*max_speed, 0.0, 0.0))
+            # Move shuttle down
+            if (self.targets_y[shuttle_number]  + move_increment) < current_pos[0]: # Add +-0.06
+                prim.GetAttribute('xformOp:translate').Set((current_pos)-(move_increment, 0.0, 0.0))
+                print("current pos: ", current_pos)
+                print("target_y", self.targets_y[shuttle_number])
                 continue
-            # Move cube to the left
-            elif (self._target[1] - 0.1) > current_pos[0]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos)+(step_size*max_speed, 0.0, 0.0))
+            # # Move shuttle up
+            elif (self.targets_y[shuttle_number] - move_increment) > current_pos[0]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos)+(move_increment, 0.0, 0.0))
                 continue
 
-            #current_pos = prim.GetAttribute('xformOp:translate').Get()
+            # #current_pos = prim.GetAttribute('xformOp:translate').Get()
 
             # Move cube up
-            if (self._target[0] + 0.1) > current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos)+(0.0, step_size*max_speed, 0.0))
+            if (self.targets_x[shuttle_number] - move_increment) > current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos)+(0.0, move_increment, 0.0))
                 continue
             # Move cube down
-            elif (self._target[0] - 0.1) < current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos)-(0.0, step_size*max_speed, 0.0))
+            elif (self.targets_x[shuttle_number] + move_increment) < current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos)-(0.0, move_increment, 0.0))
                 continue
 
 
@@ -308,20 +349,17 @@ class MAPs(BaseSample):
 
             # Set position of shuttle
             prim.GetAttribute('xformOp:translate').Set((xbot_positions[shuttle_number][0],
-                                                    xbot_positions[shuttle_number][1] ,
-                                                    xbot_positions[shuttle_number][2] + 1.06))
-
+                                                        xbot_positions[shuttle_number][1] ,
+                                                        xbot_positions[shuttle_number][2] + 1.06))
+ 
             # Transform orientation from euler angles to quaternion
             quat_prim = (euler_angles_to_quat([xbot_positions[shuttle_number][3],
-                                            xbot_positions[shuttle_number][4],
-                                            xbot_positions[shuttle_number][5]]))
+                                               xbot_positions[shuttle_number][4],
+                                               xbot_positions[shuttle_number][5]]))
             quat = Gf.Quatd(*quat_prim)
 
             # Set Orientation of shuttle
             prim.GetAttribute('xformOp:orient').Set(quat)
-
-
-
 
 
     def send_xbots_positions(self, step_size):
@@ -339,7 +377,7 @@ class MAPs(BaseSample):
                             xbot.xbot_state) for xbot in xbot_list]
 
             # Don't send commands while the xbots are moving
-            if all(xbot_state[6] == pmc_types.XbotState.XBOT_IDLE for xbot_state in xbot_positions):
+            if all(xbot_state[6] == pmc_types.XbotState.XBOT_IDLE for xbot_state in xbot_positions): #xbot_state[6] --> xbot_state
                 # Get random unique targets for each shuttle
                 targets_x, targets_y = self.create_random_coordinates(self._number_shuttles)
                 print("target_x ", targets_x)
