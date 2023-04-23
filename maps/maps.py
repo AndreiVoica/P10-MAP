@@ -43,6 +43,11 @@ class MAPs(BaseSample):
         self._lab_setup_orientation = np.array([0, 0, 0, 1])
         self._lab_setup_scale = 1.0
 
+        # Shuttles Grid:
+        self._grid_position = np.array([1.2877, -1.0415, 0.0])
+        shuttle_orientation = np.pi/2
+        self._grid_orientation = np.array([np.cos(shuttle_orientation/2), 0, 0, np.sin(shuttle_orientation/2)]) #Rotates 90 degrees around z-axis
+
         # Shuttles:
         self._number_shuttles = 8
         self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
@@ -62,12 +67,7 @@ class MAPs(BaseSample):
         self._flyway_orientation = np.array([0, 0, 0, 1])
         self._flyway_scale = 0.01
 
-        # Shuttles Grid:
-        self._grid_position = np.array([1.2877, -1.0415, 0.0])
-        shuttle_orientation = np.pi/2
-        self._grid_orientation = np.array([np.cos(shuttle_orientation/2), 0, 0, np.sin(shuttle_orientation/2)]) #Rotates 90 degrees around z-axis
-
-
+       
         # USD asset paths:
         self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
         self.asset_paths = {
@@ -121,6 +121,7 @@ class MAPs(BaseSample):
         }
 
         self.prim_dict = {} # Dictionary to store shuttle prim paths
+        self.current_pos_dict = {} # Dictionary to store shuttle current positions
 
         self.control_switch = 0 # 0: Sim, 1: PMC
 
@@ -152,7 +153,6 @@ class MAPs(BaseSample):
                     world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/flyway_{}{}".format((i+1),(j+1)),
                                                  name="flyway_{}{}_ref_geom".format(i+1, j+1), collision=True))
 
-
         # Add Xform reference for each station
         for i in range(len(self.station_info)):
             world.scene.add(XFormPrim(prim_path="/World/LabSetup/Station_{}".format(i+1), name="Station_{}".format(i+1)))
@@ -176,19 +176,17 @@ class MAPs(BaseSample):
     # many physical properties of the different objects
     async def setup_post_load(self):
 
-        # Load World and Assets
+        # Load World and Assets --CHECK
         self._world = self.get_world()
         self._world.scene.enable_bounding_boxes_computations()
 
         # Add USD Assets
         await self._add_lab_setup()
-
+        await self._add_shuttles_grid()
         for i in range(len(self.flyways_matrix)):
             for j in range(len(self.flyways_matrix[i])):
                 if self.flyways_matrix[i][j] == 1:
-                    print("Performing action on element at position", i, j)
                     await self._add_flyway(i, j)
-
         for i in range(len(self.station_info)):
             await self._add_station(i)
         for i in range(self._number_shuttles):
@@ -210,15 +208,16 @@ class MAPs(BaseSample):
         # Control Switch
         if self.control_switch == 0:
             self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
-            self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement)
+            self.targets_x[shuttle_number] = 0.48
+            self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
         elif self.control_switch == 1:
-            self.connect_pmc()  # Connect to PMC
+            self._connect_pmc()  # Connect to PMC
             self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
             self._world.add_physics_callback("sim_step_move", callback_fn=self.send_xbots_positions)
 
         return
 
-        # Add Lab Setup reference
+    # Add Lab Setup reference
     async def _add_lab_setup(self):
         self._lab_setup_ref_geom = self._world.scene.get_object(f"lab_setup_ref_geom")
         self._lab_setup_ref_geom.set_local_scale(np.array([self._lab_setup_scale]))
@@ -242,7 +241,6 @@ class MAPs(BaseSample):
         self._flyway_ref_geom.set_default_state(position = self._flyway_position)
         self._flyway_ref_geom.set_collision_approximation("none")
 
-
     # Add xForm shuttles reference
     async def _add_shuttles_grid(self):
         self._shuttles_grid_ref_geom = self._world.scene.get_object(f"Grid")
@@ -259,6 +257,7 @@ class MAPs(BaseSample):
         self._shuttle_ref_geom.set_default_state(position=self._shuttle_position)
         self._shuttle_ref_geom.set_collision_approximation("none")
 
+    # Add working stations to the scene
     async def _add_station(self, station_number):
         station_number =station_number + 1
         self._station_ref_geom = self._world.scene.get_object(f"Station_{station_number}")
@@ -274,9 +273,19 @@ class MAPs(BaseSample):
         self._asset_ref_geom.set_collision_approximation("none")
 
 
-    async def on_sim_control_event_async(self):
+    async def _on_sim_control_event_async(self):
         world = self.get_world()
+        self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
+        world.remove_physics_callback("sim_step")
         world.add_physics_callback("sim_step", self.sim_xbots_movement)
+        await world.play_async()
+        return
+    
+    async def _on_real_control_event_async(self):
+        world = self.get_world()
+        world.remove_physics_callback("sim_step")
+        self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
+        self._world.add_physics_callback("sim_step_move", callback_fn=self.send_xbots_positions)
         await world.play_async()
         return
 
@@ -290,48 +299,113 @@ class MAPs(BaseSample):
         return
 
 
+    # Move xbots in simulation (No collision detection)
     def sim_xbots_movement(self, step_size):
-        #print("step_size: ", step_size)
-        #print(self.translate)
-
-        #stage = omni.usd.get_context().get_stage()
 
         max_speed = 3.0 # m/s
         max_accel = 10.0 # m/s^2
-        move_increment = step_size * max_speed
+        move_increment = step_size * max_speed 
 
-        # Random targets for every shuttle
-        # targets_x, targets_y = self.create_random_coordinates(self._number_shuttles)
-
-        #for shuttle_number in range(1):
         for shuttle_number in range(self._number_shuttles):
             prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
 
             current_pos = prim.GetAttribute('xformOp:translate').Get() 
-            print("current pos: ", current_pos)
-            print("target_y", self.targets_y[shuttle_number])
 
-            # Move shuttle down
-            if (self.targets_y[shuttle_number]  + move_increment) < current_pos[0]: # Add +-0.06
-                prim.GetAttribute('xformOp:translate').Set((current_pos)-(move_increment, 0.0, 0.0))
-                print("current pos: ", current_pos)
-                print("target_y", self.targets_y[shuttle_number])
+            print("current pos: ", current_pos)
+            print("target_x", self.targets_x[shuttle_number], "shuttle_number: ", shuttle_number + 1)
+
+            # Move shuttle up
+            if (self.targets_y[shuttle_number]) > current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) + (0.0, move_increment, 0.0))
+                if (current_pos[1] + move_increment) > self.targets_y[shuttle_number]:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
                 continue
-            # # Move shuttle up
-            elif (self.targets_y[shuttle_number] - move_increment) > current_pos[0]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos)+(move_increment, 0.0, 0.0))
+            # Move shuttle down
+            elif (self.targets_y[shuttle_number]) < current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) - (0.0, move_increment, 0.0))
+                if (current_pos[1] - move_increment) < self.targets_y[shuttle_number]:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
                 continue
 
             # #current_pos = prim.GetAttribute('xformOp:translate').Get()
 
-            # Move cube up
-            if (self.targets_x[shuttle_number] - move_increment) > current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos)+(0.0, move_increment, 0.0))
+            # Move shuttle right
+            if (self.targets_x[shuttle_number]) > current_pos[0]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) + (move_increment, 0.0, 0.0))
+                if (current_pos[0] + move_increment) > self.targets_x[shuttle_number]:
+                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
                 continue
-            # Move cube down
-            elif (self.targets_x[shuttle_number] + move_increment) < current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos)-(0.0, move_increment, 0.0))
+            # Move shuttle left
+            elif (self.targets_x[shuttle_number]) < current_pos[0]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) - (move_increment, 0.0 , 0.0))
+                if (current_pos[0] - move_increment) < self.targets_x[shuttle_number]:
+                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
                 continue
+
+    # Move xbots in simulation (Checking other shuttles in the path)
+    def sim_xbots_movement_2(self, step_size):
+
+        max_speed = 1.0 # m/s
+        move_increment = step_size * max_speed 
+
+        for shuttle_number in range(self._number_shuttles):
+
+            # Store every shuttle position in a dictionary --- Check if using this new dict or adding it to a new dictionary
+            # Using a list for x and another for y could be an option too
+            prim_name = "prim_{}".format(shuttle_number + 1)
+            prim = self.prim_dict[prim_name]
+            current_pos = prim.GetAttribute('xformOp:translate').Get()
+            self.current_pos_dict[prim_name] = current_pos
+
+
+            prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
+
+            # FIRST DO IT HERE FOR EVERY SHUTTLE, AFTER JUST UPDATE THE UPDATED VALUE
+
+            print(self.current_pos_dict)
+
+            # print("current pos: ", current_pos)
+            # print("target_x", self.targets_x[shuttle_number], "shuttle_number: ", shuttle_number + 1)
+
+            
+
+
+
+
+            #while (self.targets_x[shuttle_number]) != current_pos[0] and (self.targets_y[shuttle_number]) != current_pos[1]:
+
+                # for prim, x_position in self.current_pos_dict.items():
+                #     if self.current_pos_dict["prim_{}".format(shuttle_number + 1)] == self.current_pos_dict[prim]:
+                
+                
+                
+                # Move shuttle up
+                    # if (self.targets_y[shuttle_number]) > current_pos[1] and current_pos[1] :
+                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) + (0.0, move_increment, 0.0))
+                    #     if (current_pos[1] + move_increment) > self.targets_y[shuttle_number]:
+                    #         prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
+                    #     continue
+                    # # Move shuttle down
+                    # elif (self.targets_y[shuttle_number]) < current_pos[1]:
+                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) - (0.0, move_increment, 0.0))
+                    #     if (current_pos[1] - move_increment) < self.targets_y[shuttle_number]:
+                    #         prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
+                    #     continue
+
+                    # # #current_pos = prim.GetAttribute('xformOp:translate').Get()
+
+                    # # Move shuttle right
+                    # if (self.targets_x[shuttle_number]) > current_pos[0]:
+                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) + (move_increment, 0.0, 0.0))
+                    #     if (current_pos[0] + move_increment) > self.targets_x[shuttle_number]:
+                    #         prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
+                    #     continue
+                    # # Move shuttle left
+                    # elif (self.targets_x[shuttle_number]) < current_pos[0]:
+                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) - (move_increment, 0.0 , 0.0))
+                    #     if (current_pos[0] - move_increment) < self.targets_x[shuttle_number]:
+                    #         prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
+                    #     continue
 
 
     # Read shuttles position and orientation from physical setup
@@ -389,8 +463,6 @@ class MAPs(BaseSample):
             self.last_update_time = time.time()
 
 
-
-
         # if bot.get_xbot_status(xbot_id=xid).xbot_state is pmc_types.XbotState.XBOT_IDLE:
         #     #self.sample_motions(input_id=xid)
         #     bot.auto_driving_motion_si(8, xbot_ids=xbot_ids, targets_x=targets_x, targets_y=targets_y)
@@ -408,8 +480,8 @@ class MAPs(BaseSample):
 
         for i in range(num_shuttles):
             while True:
-                x = random.randint(0, 6) * 0.12 + 0.06
-                y = random.randint(0, 8) * 0.12 + 0.06
+                x = random.randint(0, 5) * 0.12 + 0.06
+                y = random.randint(0, 7) * 0.12 + 0.06
                 if (x, y) not in coords_dict:
                     coords_dict[(x, y)] = 1
                     break
@@ -446,7 +518,7 @@ class MAPs(BaseSample):
         while bot.get_xbot_status(xbot_id=xid).xbot_state is not pmc_types.XbotState.XBOT_IDLE:
             time.sleep(0.5)
 
-    def connect_pmc(self):
+    def _connect_pmc(self):
 
         # Connect to PMC
         if not sys.auto_connect_to_pmc():
