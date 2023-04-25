@@ -55,6 +55,8 @@ class MAPs(BaseSample):
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
         self._target = np.array([0.8, 0.52])
         self._shuttle_scale = 0.01
+        self.xbot_ids = [1, 2, 3, 4, 5, 6, 7, 8]
+
 
         # Flyways:
         # DEFINE FLYWAYS MATRIX
@@ -208,7 +210,7 @@ class MAPs(BaseSample):
         # Control Switch
         if self.control_switch == 0:
             self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
-            self.targets_x[shuttle_number] = 0.48
+            # self.targets_x[shuttle_number] = 0.48
             self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
         elif self.control_switch == 1:
             self._connect_pmc()  # Connect to PMC
@@ -348,64 +350,81 @@ class MAPs(BaseSample):
         max_speed = 1.0 # m/s
         move_increment = step_size * max_speed 
 
-        for shuttle_number in range(self._number_shuttles):
 
-            # Store every shuttle position in a dictionary --- Check if using this new dict or adding it to a new dictionary
-            # Using a list for x and another for y could be an option too
-            prim_name = "prim_{}".format(shuttle_number + 1)
-            prim = self.prim_dict[prim_name]
+
+        for xbot in range(self._number_shuttles):
+
+            prim = self.prim_dict["prim_{}".format(xbot + 1)]
+
             current_pos = prim.GetAttribute('xformOp:translate').Get()
-            self.current_pos_dict[prim_name] = current_pos
-
-
-            prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
-
+ 
             # FIRST DO IT HERE FOR EVERY SHUTTLE, AFTER JUST UPDATE THE UPDATED VALUE
 
-            print(self.current_pos_dict)
+            x_pos_control = []
+            y_pos_control = []
 
-            # print("current pos: ", current_pos)
-            # print("target_x", self.targets_x[shuttle_number], "shuttle_number: ", shuttle_number + 1)
+            # Collect all shuttles positions
+            for shuttle_number in range(self._number_shuttles):
+                prim_others = self.prim_dict["prim_{}".format(shuttle_number + 1)]
+                shuttles_pos = prim_others.GetAttribute('xformOp:translate').Get()
+                print("shuttles_pos: ", shuttles_pos)
+                x_pos_control.append(shuttles_pos[0])
+                y_pos_control.append(shuttles_pos[1])
 
+            print("x_pos_control: ", x_pos_control)
+            print("y_pos_control: ", y_pos_control)
+
+            # CHECK if condition
+            for shuttle in range(self._number_shuttles):
+                if xbot != shuttle and (current_pos[1] > (y_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[1] < (y_pos_control[shuttle] + 0.0602 + move_increment) and current_pos[0] > (x_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[0] < (x_pos_control[shuttle] + 0.0602 + move_increment)):                
+                    continue_flag = True
+                    print("continue_flag: ", continue_flag)
+            if continue_flag:
+                continue
             
+            # WHEN THIS HAPPENS, BREAK THE OUTER LOOP -- TBD
+        
+            # Move shuttle right
+            if (self.targets_x[xbot]) > current_pos[0]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) + (move_increment, 0.0, 0.0))
+                if (current_pos[0] + move_increment) > self.targets_x[xbot]:
+                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[xbot], current_pos[1], current_pos[2]))
+                break
+            # Move shuttle left
+            elif (self.targets_x[xbot]) < current_pos[0]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) - (move_increment, 0.0 , 0.0))
+                if (current_pos[0] - move_increment) < self.targets_x[xbot]:
+                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[xbot], current_pos[1], current_pos[2]))
+                break
+
+            # for shuttle in range(self._number_shuttles):
+            #     if xbot != shuttle:
+            #         continue 
+            #     elif (current_pos[0] > (x_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[0] < (x_pos_control[shuttle] + 0.0602 + move_increment)):                   
+            #         break
+
+            for shuttle in range(self._number_shuttles):
+                if xbot != shuttle and (current_pos[0] > (x_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[0] < (x_pos_control[shuttle] + 0.0602 + move_increment)):                   
+                    continue_flag = True
+            if continue_flag:
+                continue
+                         
+            # Move shuttle up
+            if (self.targets_y[xbot]) > current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) + (0.0, move_increment, 0.0))
+                if (current_pos[1] + move_increment) > self.targets_y[xbot]:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[xbot], current_pos[2]))
+                break
+            # Move shuttle down
+            elif (self.targets_y[xbot]) < current_pos[1]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos) - (0.0, move_increment, 0.0))
+                if (current_pos[1] - move_increment) < self.targets_y[xbot]:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[xbot], current_pos[2]))
+                break
+            
+            # #current_pos = prim.GetAttribute('xformOp:translate').Get()
 
 
-
-
-            #while (self.targets_x[shuttle_number]) != current_pos[0] and (self.targets_y[shuttle_number]) != current_pos[1]:
-
-                # for prim, x_position in self.current_pos_dict.items():
-                #     if self.current_pos_dict["prim_{}".format(shuttle_number + 1)] == self.current_pos_dict[prim]:
-                
-                
-                
-                # Move shuttle up
-                    # if (self.targets_y[shuttle_number]) > current_pos[1] and current_pos[1] :
-                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) + (0.0, move_increment, 0.0))
-                    #     if (current_pos[1] + move_increment) > self.targets_y[shuttle_number]:
-                    #         prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
-                    #     continue
-                    # # Move shuttle down
-                    # elif (self.targets_y[shuttle_number]) < current_pos[1]:
-                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) - (0.0, move_increment, 0.0))
-                    #     if (current_pos[1] - move_increment) < self.targets_y[shuttle_number]:
-                    #         prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
-                    #     continue
-
-                    # # #current_pos = prim.GetAttribute('xformOp:translate').Get()
-
-                    # # Move shuttle right
-                    # if (self.targets_x[shuttle_number]) > current_pos[0]:
-                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) + (move_increment, 0.0, 0.0))
-                    #     if (current_pos[0] + move_increment) > self.targets_x[shuttle_number]:
-                    #         prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
-                    #     continue
-                    # # Move shuttle left
-                    # elif (self.targets_x[shuttle_number]) < current_pos[0]:
-                    #     prim.GetAttribute('xformOp:translate').Set((current_pos) - (move_increment, 0.0 , 0.0))
-                    #     if (current_pos[0] - move_increment) < self.targets_x[shuttle_number]:
-                    #         prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
-                    #     continue
 
 
     # Read shuttles position and orientation from physical setup
@@ -438,8 +457,6 @@ class MAPs(BaseSample):
 
     def send_xbots_positions(self, step_size):
 
-        xbot_ids = [1, 2, 3, 4, 5, 6, 7, 8]
-
         # Only update the Xbots if at least 2 seconds have passed since the last update
         if time.time() - self.last_update_time >= 2:
 
@@ -456,7 +473,7 @@ class MAPs(BaseSample):
                 targets_x, targets_y = self.create_random_coordinates(self._number_shuttles)
                 print("target_x ", targets_x)
                 print("target_y ", targets_y)
-                bot.auto_driving_motion_si(8, xbot_ids=xbot_ids, targets_x=targets_x, targets_y=targets_y)
+                bot.auto_driving_motion_si(8, xbot_ids=self.xbot_ids, targets_x=targets_x, targets_y=targets_y)
             else:
                 print("Xbots are moving")
 
