@@ -14,11 +14,12 @@ from pxr import Sdf, Gf, UsdPhysics
 from omni.isaac.core.utils.rotations import euler_angles_to_quat
 import numpy as np
 
-from omni.isaac.core.utils.nucleus import get_assets_root_path, get_server_path
 from omni.isaac.core.utils.stage import add_reference_to_stage
 from omni.isaac.core.robots import Robot
 from omni.isaac.core.utils.types import ArticulationAction
+from omni.isaac.core.articulations import Articulation
 
+import sys
 import carb
 
 from pmclib import system_commands as sys   # PMC System related commands
@@ -26,8 +27,38 @@ from pmclib import xbot_commands as bot     # PMC Mover related commands
 from pmclib import pmc_types                # PMC API Types
 import time
 import random
+# import rospy
+# from sensor_msgs.msg import JointState
 
 
+# Example ROS bridge sample demonstrating the manual loading of stages
+# and creation of ROS components
+from omni.isaac.core import SimulationContext
+from omni.isaac.core.utils import viewports, stage, extensions, prims, rotations, nucleus
+from omni.isaac.core.utils.prims import set_targets
+
+
+
+import omni.graph.core as og
+
+# import rosgraph
+#########################################################################################################
+
+
+KUKA_STAGE_PATH = "/World/Kuka_kr3_1"
+# enable ROS bridge extension
+extensions.enable_extension("omni.isaac.ros_bridge")
+
+# check if rosmaster node is running
+# this is to prevent this sample from waiting indefinetly if roscore is not running
+# can be removed in regular usage
+
+# if not rosgraph.is_master_online():
+#     carb.log_error("Please run roscore before executing this script")
+
+#     exit()
+
+#########################################################################################################
 class MAPs(BaseSample):
     def __init__(self) -> None:
         super().__init__()
@@ -55,7 +86,7 @@ class MAPs(BaseSample):
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
         self._target = np.array([0.8, 0.52])
         self._shuttle_scale = 0.01
-        self.xbot_ids = [1, 2, 3, 4, 5, 6, 7, 8]
+        self.xbot_ids = [1, 2, 3, 4, 5, 6, 7, 8] # THIS SHOULD DEPEND ON NUMBER OF SHUTTLES
 
 
         # Flyways:
@@ -68,14 +99,16 @@ class MAPs(BaseSample):
         self._flyway_position = np.array([1.165, -0.92398, 0.99302])
         self._flyway_orientation = np.array([0, 0, 0, 1])
         self._flyway_scale = 0.01
-
        
         # USD asset paths:
-        self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
+        #self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
+        self.asset_folder = "/home/robotlab/Documents/Github/P10-MAP/assets/"
         self.asset_paths = {
-            "acopos_setup": self.asset_folder + "AcoposEnv_v1.usd", # Table + Acopos Matrix
-            "kr3": self.asset_folder + "kr3r540/kr3r540_v3/kr3r540_v3.usd",
-            "kr4": self.asset_folder + "kr4r600/kr4r600_v1/kr4r600_v1.usd", 
+            #"kr3": self.asset_folder + "kr3r540/kr3r540_v3/kr3r540_v3.usd",
+            #"kr3": self.asset_folder + "kr3r540/kr3r540_v4/kr3r540_v4.usd", # Schunk Kr3
+            "kr3": self.asset_folder + "kr3r540_v4/kr3r540_v4g.usd", # Schunk Kr3
+            "kr4": self.asset_folder + "kr4r600/kr4r600_v2.usd", 
+            "franka": "omniverse://localhost/NVIDIA/Assets/Isaac/2022.2.1/Isaac/Robots/Franka/franka_alt_fingers.usd",
             "flyway": self.asset_folder + "flyways/flyway_segment.usd",
             "shuttle": self.asset_folder + "120x120x10/acopos_shuttle_120.usd",
             #"lab_setup": self.asset_folder + "Lab_setup_v2.usd" # Lab Setup with robots
@@ -137,11 +170,13 @@ class MAPs(BaseSample):
         # A world is defined in the BaseSample, can be accessed everywhere EXCEPT __init__
         world = self.get_world()
         world = World.instance()
+
+        # stage.SetDefaultPrim(world)
         world.scene.add_default_ground_plane() # adds a default ground plane to the scene
 
         # Add Lab Setup Reference
-        add_reference_to_stage(usd_path=self.asset_paths["lab_setup"], prim_path="/World")
-        world.scene.add(GeometryPrim(prim_path="/World", name=f"lab_setup_ref_geom", collision=True))
+        add_reference_to_stage(usd_path=self.asset_paths["lab_setup"], prim_path="/World/LabSetup")
+        world.scene.add(GeometryPrim(prim_path="/World/LabSetup", name=f"lab_setup_ref_geom", collision=True))
 
         # Add Xform reference for the shuttles
         world.scene.add(XFormPrim(prim_path="/World/LabSetup/Grid", name=f"Grid"))
@@ -157,18 +192,38 @@ class MAPs(BaseSample):
 
         # Add Xform reference for each station
         for i in range(len(self.station_info)):
-            world.scene.add(XFormPrim(prim_path="/World/LabSetup/Station_{}".format(i+1), name="Station_{}".format(i+1)))
 
+            # Add Robots references
             add_reference_to_stage(usd_path=self.station_info[i+1]['asset'],
-                                   prim_path="/World/LabSetup/Station_{}/{}".format((i+1), self.station_info[i+1]['asset_name']))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Station_{}/{}".format(i+1, self.station_info[i+1]['asset_name']),
-                                            name="station_{}_asset_ref_geom".format(i+1), collision=True))
+                                    prim_path="/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1)))
+
+            
+            world.scene.add(Articulation(prim_path ="/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1)),
+                                              name="Kuka_{}".format(i+1),
+                                              position = self.station_info[i+1]['position'],
+                                              orientation = self.station_info[i+1]['orientation']))
+            
+            # world.scene.add(XFormPrim(prim_path="/World/LabSetup/Station_{}".format(i+1), name="Station_{}".format(i+1)))
+            
+            # add_reference_to_stage(usd_path=self.station_info[i+1]['asset'],
+            #                     prim_path="/World/LabSetup/Station_{}/Kuka_{}_1".format(i+1, self.station_info[i+1]['asset_name']))
+
+            # world.scene.add(Articulation(prim_path="/World/LabSetup/Station_{}/Kuka_{}_1".format(i+1, self.station_info[i+1]['asset_name']),
+            #                                 name="station_{}_asset_ref_geom".format(i+1)))
+
+
+            #world.scene.add(Robot(prim_path ="/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1)),
+                                            #   name="Kuka_{}".format(i+1),
+                                            #   position = self.station_info[i+1]['position']))
+            
+
 
         # Add shuttles references
         for i in range(self._number_shuttles):
             add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1))
             world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1),
                                          name="shuttle_{}_ref_geom".format(i+1), collision=True))
+            
 
         return
 
@@ -180,7 +235,10 @@ class MAPs(BaseSample):
 
         # Load World and Assets --CHECK
         self._world = self.get_world()
-        self._world.scene.enable_bounding_boxes_computations()
+        #self._world.scene.enable_bounding_boxes_computations()
+
+        # Camera Initial Viewport
+        viewports.set_camera_view(eye=np.array([3.3, -0.7, 2.2]), target=np.array([0.8, -0.7, 1.05]))
 
         # Add USD Assets
         await self._add_lab_setup()
@@ -189,8 +247,8 @@ class MAPs(BaseSample):
             for j in range(len(self.flyways_matrix[i])):
                 if self.flyways_matrix[i][j] == 1:
                     await self._add_flyway(i, j)
-        for i in range(len(self.station_info)):
-            await self._add_station(i)
+        # for i in range(len(self.station_info)):
+        #     await self._add_station(i)
         for i in range(self._number_shuttles):
             await self._add_shuttle(i)
 
@@ -207,11 +265,144 @@ class MAPs(BaseSample):
                 print("Error: shuttle prim not found at path {}".format(shuttle_path))
 
 
+        # rospy.init_node('position_velocity_publisher')
+        # pub = rospy.Publisher('joint_command', JointState, queue_size=10)
+
+        # joint_state_position = JointState()
+        # # joint_state_velocity = JointState()
+
+        # joint_state_position.name = ["joint_a1", "joint_a2","joint_a3, joint_a4", "joint_a5","joint_a6"]
+        # # joint_state_velocity.name = ["wheel_left_joint", "wheel_right_joint"]
+        # joint_state_position.position = [0.2,0.2,0.2,0.2,0.2,0.2]
+        # # joint_state_velocity.velocity = [20, -20]
+
+        # rate = rospy.Rate(10)
+        # while not rospy.is_shutdown():
+        #     pub.publish(joint_state_position)
+        #     # pub.publish(joint_state_velocity)
+        #     rate.sleep()
+
+
+        for i in range(len(self.station_info)):
+
+            # Creating a action graph with ROS component nodes
+            try:
+                og.Controller.edit(
+                    {"graph_path": "/World/Kuka_{}_{}/ActionGraph".format(self.station_info[i+1]['asset_name'], (i+1)), "evaluator_name": "execution"},
+                    {
+                        og.Controller.Keys.CREATE_NODES: [
+                            ("OnPlaybackTick", "omni.graph.action.OnPlaybackTick"),
+                            ("ReadSimTime", "omni.isaac.core_nodes.IsaacReadSimulationTime"),
+                            ("PublishJointState", "omni.isaac.ros_bridge.ROS1PublishJointState"),
+                            ("SubscribeJointState", "omni.isaac.ros_bridge.ROS1SubscribeJointState"),
+                            ("ArticulationController", "omni.isaac.core_nodes.IsaacArticulationController"),
+                            ("PublishTF", "omni.isaac.ros_bridge.ROS1PublishTransformTree"),
+                            ("PublishClock", "omni.isaac.ros_bridge.ROS1PublishClock"),
+                        ],
+                        og.Controller.Keys.CONNECT: [
+                            ("OnPlaybackTick.outputs:tick", "PublishJointState.inputs:execIn"),
+                            ("OnPlaybackTick.outputs:tick", "SubscribeJointState.inputs:execIn"),
+                            ("OnPlaybackTick.outputs:tick", "PublishTF.inputs:execIn"),
+                            ("OnPlaybackTick.outputs:tick", "PublishClock.inputs:execIn"),
+                            ("OnPlaybackTick.outputs:tick", "ArticulationController.inputs:execIn"),
+                            ("ReadSimTime.outputs:simulationTime", "PublishJointState.inputs:timeStamp"),
+                            ("ReadSimTime.outputs:simulationTime", "PublishClock.inputs:timeStamp"),
+                            ("ReadSimTime.outputs:simulationTime", "PublishTF.inputs:timeStamp"),
+                            ("SubscribeJointState.outputs:jointNames", "ArticulationController.inputs:jointNames"),
+                            ("SubscribeJointState.outputs:positionCommand", "ArticulationController.inputs:positionCommand"),
+                            ("SubscribeJointState.outputs:velocityCommand", "ArticulationController.inputs:velocityCommand"),
+                            ("SubscribeJointState.outputs:effortCommand", "ArticulationController.inputs:effortCommand"),
+                        ],
+            #             # og.Controller.Keys.CREATE_NODES: [
+            #             #     ("OnImpulseEvent", "omni.graph.action.OnImpulseEvent"),
+            #             #     ("ReadSimTime", "omni.isaac.core_nodes.IsaacReadSimulationTime"),
+            #             #     ("PublishJointState", "omni.isaac.ros_bridge.ROS1PublishJointState"),
+            #             #     ("SubscribeJointState", "omni.isaac.ros_bridge.ROS1SubscribeJointState"),
+            #             #     ("ArticulationController", "omni.isaac.core_nodes.IsaacArticulationController"),
+            #             #     ("PublishTF", "omni.isaac.ros_bridge.ROS1PublishTransformTree"),
+            #             #     ("PublishClock", "omni.isaac.ros_bridge.ROS1PublishClock"),
+            #             # ],
+            #             # og.Controller.Keys.CONNECT: [
+            #             #     ("OnImpulseEvent.outputs:execOut", "PublishJointState.inputs:execIn"),
+            #             #     ("OnImpulseEvent.outputs:execOut", "SubscribeJointState.inputs:execIn"),
+            #             #     ("OnImpulseEvent.outputs:execOut", "PublishTF.inputs:execIn"),
+            #             #     ("OnImpulseEvent.outputs:execOut", "PublishClock.inputs:execIn"),
+            #             #     ("OnImpulseEvent.outputs:execOut", "ArticulationController.inputs:execIn"),
+            #             #     ("ReadSimTime.outputs:simulationTime", "PublishJointState.inputs:timeStamp"),
+            #             #     ("ReadSimTime.outputs:simulationTime", "PublishClock.inputs:timeStamp"),
+            #             #     ("ReadSimTime.outputs:simulationTime", "PublishTF.inputs:timeStamp"),
+            #             #     ("SubscribeJointState.outputs:jointNames", "ArticulationController.inputs:jointNames"),
+            #             #     ("SubscribeJointState.outputs:positionCommand", "ArticulationController.inputs:positionCommand"),
+            #             #     ("SubscribeJointState.outputs:velocityCommand", "ArticulationController.inputs:velocityCommand"),
+            #             #     ("SubscribeJointState.outputs:effortCommand", "ArticulationController.inputs:effortCommand"),
+            #             # ],
+                        og.Controller.Keys.SET_VALUES: [
+                            # Setting the /Kuka target prim to Articulation Controller node
+                            ("SubscribeJointState.inputs:topicName", "joint_command"),
+                            ("ArticulationController.inputs:usePath", False),
+                            ("ArticulationController.inputs:robotPath", ""),
+
+                        ],
+                    },
+                )
+            except Exception as e:
+                print(e)
+
+
+            # Setting the /Kuka target prim to Publish JointState node
+            set_targets(
+                prim = stage.GetPrimAtPath("/World/Kuka_{}_{}/ActionGraph/PublishJointState".format(self.station_info[i+1]['asset_name'], (i+1))),
+                #prim=stage.get_current_stage().GetPrimAtPath("/ActionGraph/PublishJointState"),            
+                attribute="inputs:targetPrim",
+                target_prim_paths=["/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1))]
+            )
+
+            # Setting the /Kuka target prim to Articulation Controller node
+            set_targets(
+                prim = stage.GetPrimAtPath("/World/Kuka_{}_{}/ActionGraph/ArticulationController".format(self.station_info[i+1]['asset_name'], (i+1))),
+                #prim=stage.get_current_stage().GetPrimAtPath("/ActionGraph/PublishJointState"),            
+                attribute="inputs:targetPrim",
+                target_prim_paths=["/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1))]
+            )
+
+            # Setting the /Kuka target prim to Publish Transform Tree node
+            set_targets(
+                prim = stage.GetPrimAtPath("/World/Kuka_{}_{}/ActionGraph/PublishTF".format(self.station_info[i+1]['asset_name'], (i+1))),
+                #prim=stage.get_current_stage().GetPrimAtPath("/ActionGraph/PublishTF"),
+                attribute = "inputs:targetPrims",
+                target_prim_paths=["/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1))]
+            )
+
+            # Setting the /Kuka target prim to Publish Transform Tree node
+            set_targets(
+                prim = stage.GetPrimAtPath("/World/Kuka_{}_{}/ActionGraph/PublishTF".format(self.station_info[i+1]['asset_name'], (i+1))),
+                #prim=stage.get_current_stage().GetPrimAtPath("/ActionGraph/PublishTF"),
+                attribute = "inputs:parentPrim",
+                target_prim_paths=["/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1))]
+            )
+
+
+
+
+
+
+        # while simulation_app.is_running():
+
+        #     # Run with a fixed step size
+        #     simulation_context.step(render=True)
+
+        #     # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
+        #     og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
+
+
+
+
         # Control Switch
         if self.control_switch == 0:
             self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
             # self.targets_x[shuttle_number] = 0.48
-            self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
+            # self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
+            # self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
         elif self.control_switch == 1:
             self._connect_pmc()  # Connect to PMC
             self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
@@ -227,11 +418,6 @@ class MAPs(BaseSample):
                                                 orientation=self._lab_setup_orientation)
         self._lab_setup_ref_geom.set_default_state(position=self._lab_setup_position,
                                                 orientation=self._lab_setup_orientation)
-        # lb = self._world.scene.compute_object_AABB(name=f"lab_setup_ref_geom")
-        # zmin = lb[0][2]
-        # zmax = lb[1][2]
-        # self._lab_setup_position[2] = -zmin
-        # self._lab_setup_height = zmax
         self._lab_setup_ref_geom.set_collision_approximation("none")
         #self._convexIncludeRel.AddTarget(self._table_ref_geom.prim_path)
 
@@ -260,19 +446,19 @@ class MAPs(BaseSample):
         self._shuttle_ref_geom.set_collision_approximation("none")
 
     # Add working stations to the scene
-    async def _add_station(self, station_number):
-        station_number =station_number + 1
-        self._station_ref_geom = self._world.scene.get_object(f"Station_{station_number}")
-        self._station_ref_geom.set_world_pose(position=self.station_info[station_number]['position'],
-                                                orientation=self.station_info[station_number]['orientation'])
-        self._station_ref_geom.set_default_state(position=self.station_info[station_number]['position'],
-                                                orientation=self.station_info[station_number]['orientation'])
-
-        self._asset_ref_geom = self._world.scene.get_object(f"station_{station_number}_asset_ref_geom")
-        self._asset_ref_geom.set_local_scale(np.array([self.station_info[station_number]['scale']]))
-        self._asset_ref_geom.set_world_pose(position= self.station_info[station_number]['position'])
-        self._asset_ref_geom.set_default_state(position=self.station_info[station_number]['position'])
-        self._asset_ref_geom.set_collision_approximation("none")
+    # async def _add_station(self, station_number):
+    #     station_number = station_number + 1
+    #     self._station_ref_geom = self._world.scene.get_object(f"Station_{station_number}")
+    #     self._station_ref_geom.set_world_pose(position=self.station_info[station_number]['position'],
+    #                                             orientation=self.station_info[station_number]['orientation'])
+    #     self._station_ref_geom.set_default_state(position=self.station_info[station_number]['position'],
+    #                                             orientation=self.station_info[station_number]['orientation'])
+    
+        # self._asset_ref_geom = self._world.scene.get_object(f"station_{station_number}_asset_ref_geom")
+        # self._asset_ref_geom.set_local_scale(np.array([self.station_info[station_number]['scale']]))
+        # self._asset_ref_geom.set_world_pose(position= self.station_info[station_number]['position'])
+        # self._asset_ref_geom.set_default_state(position=self.station_info[station_number]['position'])
+        #self._asset_ref_geom.set_collision_approximation("none")
 
 
     async def _on_sim_control_event_async(self):
@@ -299,10 +485,16 @@ class MAPs(BaseSample):
 
     def world_cleanup(self):
         return
-
+    
+    def on_impulse_event(self, step_size):
+        # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
+        og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
 
     # Move xbots in simulation (No collision detection)
     def sim_xbots_movement(self, step_size):
+
+        # # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
+        # og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
 
         max_speed = 3.0 # m/s
         max_accel = 10.0 # m/s^2
@@ -346,6 +538,9 @@ class MAPs(BaseSample):
 
     # Move xbots in simulation (Checking other shuttles in the path)
     def sim_xbots_movement_2(self, step_size):
+
+        # og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
+
 
         max_speed = 1.0 # m/s
         move_increment = step_size * max_speed 
@@ -423,8 +618,6 @@ class MAPs(BaseSample):
                 break
             
             # #current_pos = prim.GetAttribute('xformOp:translate').Get()
-
-
 
 
     # Read shuttles position and orientation from physical setup
