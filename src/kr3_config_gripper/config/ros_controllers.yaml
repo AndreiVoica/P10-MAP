@@ -1,0 +1,56 @@
+hand_controller:
+  type: velocity_controllers/JointTrajectoryController
+  joints:
+    - joint_left
+    - joint_right
+  gains:
+    joint_left:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    joint_right:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+arm_controller:
+  type: velocity_controllers/JointTrajectoryController
+  joints:
+    - joint_a1
+    - joint_a2
+    - joint_a3
+    - joint_a4
+    - joint_a5
+    - joint_a6
+  gains:
+    joint_a1:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    joint_a2:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    joint_a3:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    joint_a4:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    joint_a5:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    joint_a6:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1

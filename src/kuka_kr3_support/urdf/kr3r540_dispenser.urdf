@@ -252,11 +252,11 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0 0"
+        xyz="-0.023 0 0.009"
         rpy="1.57 0 1.57" />
       <geometry>
         <mesh
-          filename="package://kuka_kr3_support/meshes/kr3r540/visual/Dispenser_assembly.stl" scale="0.001 0.001 0.001"/>
+          filename="package://kuka_kr3_support/meshes/kr3r540/visual/Dispenser.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material
         name="">
@@ -266,11 +266,11 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0"
+        xyz="-0.023 0 0.009"
         rpy="1.57 0 1.57" />
       <geometry>
         <mesh
-          filename="package://kuka_kr3_support/meshes/kr3r540/collision/Dispenser_assembly.stl" scale="0.001 0.001 0.001"/>
+          filename="package://kuka_kr3_support/meshes/kr3r540/collision/Dispenser.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>
