@@ -271,18 +271,18 @@
             <inertia ixx="1.2175E-08" ixy="-1.7683E-12" ixz="3.118E-13" iyy="2.6196E-09" iyz="6.348E-12" izz="1.3073E-08" />
         </inertial>
         <visual>
-            <origin xyz="0 0 0" rpy="1.57 0 1.57" />
+            <origin xyz="-0.023 0 0.009" rpy="1.57 0 1.57" />
             <geometry>
-                <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/Dispenser_assembly.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/Dispenser.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="">
                 <color rgba="1 0 0 1" />
             </material>
         </visual>
         <collision>
-            <origin xyz="0 0 0" rpy="1.57 0 1.57" />
+            <origin xyz="-0.023 0 0.009" rpy="1.57 0 1.57" />
             <geometry>
-                <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/Dispenser_assembly.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/Dispenser.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
     </link>

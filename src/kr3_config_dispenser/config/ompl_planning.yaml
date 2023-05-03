@@ -155,7 +155,7 @@ arm:
     - SPARStwo
   projection_evaluator: joints(joint_a1,joint_a2)
   longest_valid_segment_fraction: 0.005
-tool:
+hand:
   planner_configs:
     - AnytimePathShortening
     - SBL

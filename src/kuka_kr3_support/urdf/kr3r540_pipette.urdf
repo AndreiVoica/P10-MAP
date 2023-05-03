@@ -238,7 +238,7 @@
     name="base_link_gripper">
     <inertial>
       <origin
-        xyz="-0.000798709905497759 0.0330041725900681 0.000181924965941612"
+        xyz="0 0 0"
         rpy="0 0 0" />
       <mass
         value="3.0843E-05" />
@@ -252,11 +252,11 @@
     </inertial>
     <visual>
       <origin
-        xyz="0 0 0.07"
-        rpy="-1.57 0 -4.712" />
+        xyz="-0.0225 0 0.078"
+        rpy="-1.57 0 1.57" />
       <geometry>
         <mesh
-          filename="package://kuka_kr3_support/meshes/kr3r540/visual/Pipette_assembly.stl" scale="0.001 0.001 0.001"/>
+          filename="package://kuka_kr3_support/meshes/kr3r540/visual/Pipette.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material
         name="">
@@ -266,11 +266,11 @@
     </visual>
     <collision>
       <origin
-        xyz="0 0 0.07"
-        rpy="-1.57 0 -4.712" />
+        xyz="-0.0225 0 0.078"
+        rpy="-1.57 0 1.57" />
       <geometry>
         <mesh
-          filename="package://kuka_kr3_support/meshes/kr3r540/collision/Pipette_assembly.stl" scale="0.001 0.001 0.001"/>
+          filename="package://kuka_kr3_support/meshes/kr3r540/collision/Pipette.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
   </link>

@@ -37,8 +37,8 @@ stomp/arm:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/tool:
-  group_name: tool
+stomp/hand:
+  group_name: hand
   optimization:
     num_timesteps: 60
     num_iterations: 40
