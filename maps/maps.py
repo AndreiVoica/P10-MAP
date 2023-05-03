@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright (c) 2020-2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
@@ -19,27 +21,28 @@ from omni.isaac.core.robots import Robot
 from omni.isaac.core.utils.types import ArticulationAction
 from omni.isaac.core.articulations import Articulation
 
-import sys
 import carb
 
+# PMC Library Imports
 from pmclib import system_commands as sys   # PMC System related commands
 from pmclib import xbot_commands as bot     # PMC Mover related commands
 from pmclib import pmc_types                # PMC API Types
 import time
 import random
-# import rospy
-# from sensor_msgs.msg import JointState
 
-
-# Example ROS bridge sample demonstrating the manual loading of stages
-# and creation of ROS components
-from omni.isaac.core import SimulationContext
-from omni.isaac.core.utils import viewports, stage, extensions, prims, rotations, nucleus
+from omni.isaac.core.utils import viewports, extensions
 from omni.isaac.core.utils.prims import set_targets
 
-
-
+# Action graph imports
 import omni.graph.core as og
+
+import asyncio
+import rospy
+from sensor_msgs.msg import JointState
+from math import tau
+
+import sys
+
 
 # import rosgraph
 #########################################################################################################
@@ -63,7 +66,7 @@ class MAPs(BaseSample):
     def __init__(self) -> None:
         super().__init__()
 
-        # Positions are relative to parents, so set them with reversed values
+        # # Positions are relative to parents, so set them with reversed values
         # SCENE GEOMETRY
         # env (group) spacing:
         self._env_spacing = 2.0
@@ -156,7 +159,12 @@ class MAPs(BaseSample):
         }
 
         self.prim_dict = {} # Dictionary to store shuttle prim paths
+
         self.current_pos_dict = {} # Dictionary to store shuttle current positions
+
+        # Define rospy topic names
+        self.joint_state_request = JointState()
+        self.joint_state_request.name = ["joint_a1", "joint_a2","joint_a3", "joint_a4", "joint_a5","joint_a6"]
 
         self.control_switch = 0 # 0: Sim, 1: PMC
 
@@ -189,6 +197,13 @@ class MAPs(BaseSample):
                                            prim_path="/World/LabSetup/Grid/flyway_{}{}".format((i+1),(j+1)))
                     world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/flyway_{}{}".format((i+1),(j+1)),
                                                  name="flyway_{}{}_ref_geom".format(i+1, j+1), collision=True))
+                    
+        # Add shuttles references
+        for i in range(self._number_shuttles):
+            add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1))
+            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1),
+                                         name="shuttle_{}_ref_geom".format(i+1), collision=True))
+            
 
         # Add Xform reference for each station
         for i in range(len(self.station_info)):
@@ -202,27 +217,6 @@ class MAPs(BaseSample):
                                               name="Kuka_{}".format(i+1),
                                               position = self.station_info[i+1]['position'],
                                               orientation = self.station_info[i+1]['orientation']))
-            
-            # world.scene.add(XFormPrim(prim_path="/World/LabSetup/Station_{}".format(i+1), name="Station_{}".format(i+1)))
-            
-            # add_reference_to_stage(usd_path=self.station_info[i+1]['asset'],
-            #                     prim_path="/World/LabSetup/Station_{}/Kuka_{}_1".format(i+1, self.station_info[i+1]['asset_name']))
-
-            # world.scene.add(Articulation(prim_path="/World/LabSetup/Station_{}/Kuka_{}_1".format(i+1, self.station_info[i+1]['asset_name']),
-            #                                 name="station_{}_asset_ref_geom".format(i+1)))
-
-
-            #world.scene.add(Robot(prim_path ="/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1)),
-                                            #   name="Kuka_{}".format(i+1),
-                                            #   position = self.station_info[i+1]['position']))
-            
-
-
-        # Add shuttles references
-        for i in range(self._number_shuttles):
-            add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1),
-                                         name="shuttle_{}_ref_geom".format(i+1), collision=True))
             
 
         return
@@ -247,10 +241,11 @@ class MAPs(BaseSample):
             for j in range(len(self.flyways_matrix[i])):
                 if self.flyways_matrix[i][j] == 1:
                     await self._add_flyway(i, j)
-        # for i in range(len(self.station_info)):
-        #     await self._add_station(i)
         for i in range(self._number_shuttles):
             await self._add_shuttle(i)
+        # for i in range(len(self.station_info)):
+        #     await self._add_station(i)
+
 
 
         # Shuttles Prim Dictionary 
@@ -264,23 +259,12 @@ class MAPs(BaseSample):
             else:
                 print("Error: shuttle prim not found at path {}".format(shuttle_path))
 
+        # Create rospy node to publish requested joint positions
+        rospy.init_node('position_velocity_publisher')
+        self.pub = rospy.Publisher('/joint_command_isaac', JointState, queue_size=10)
 
-        # rospy.init_node('position_velocity_publisher')
-        # pub = rospy.Publisher('joint_command', JointState, queue_size=10)
 
-        # joint_state_position = JointState()
-        # # joint_state_velocity = JointState()
-
-        # joint_state_position.name = ["joint_a1", "joint_a2","joint_a3, joint_a4", "joint_a5","joint_a6"]
-        # # joint_state_velocity.name = ["wheel_left_joint", "wheel_right_joint"]
-        # joint_state_position.position = [0.2,0.2,0.2,0.2,0.2,0.2]
-        # # joint_state_velocity.velocity = [20, -20]
-
-        # rate = rospy.Rate(10)
-        # while not rospy.is_shutdown():
-        #     pub.publish(joint_state_position)
-        #     # pub.publish(joint_state_velocity)
-        #     rate.sleep()
+        self.joint_state_request.position = [0 , -1 , -tau/8 , -tau/4 , 0 , tau/6 ]
 
 
         for i in range(len(self.station_info)):
@@ -291,7 +275,7 @@ class MAPs(BaseSample):
                     {"graph_path": "/World/Kuka_{}_{}/ActionGraph".format(self.station_info[i+1]['asset_name'], (i+1)), "evaluator_name": "execution"},
                     {
                         og.Controller.Keys.CREATE_NODES: [
-                            ("OnPlaybackTick", "omni.graph.action.OnPlaybackTick"),
+                            ("OnImpulseEvent", "omni.graph.action.OnImpulseEvent"),
                             ("ReadSimTime", "omni.isaac.core_nodes.IsaacReadSimulationTime"),
                             ("PublishJointState", "omni.isaac.ros_bridge.ROS1PublishJointState"),
                             ("SubscribeJointState", "omni.isaac.ros_bridge.ROS1SubscribeJointState"),
@@ -300,11 +284,11 @@ class MAPs(BaseSample):
                             ("PublishClock", "omni.isaac.ros_bridge.ROS1PublishClock"),
                         ],
                         og.Controller.Keys.CONNECT: [
-                            ("OnPlaybackTick.outputs:tick", "PublishJointState.inputs:execIn"),
-                            ("OnPlaybackTick.outputs:tick", "SubscribeJointState.inputs:execIn"),
-                            ("OnPlaybackTick.outputs:tick", "PublishTF.inputs:execIn"),
-                            ("OnPlaybackTick.outputs:tick", "PublishClock.inputs:execIn"),
-                            ("OnPlaybackTick.outputs:tick", "ArticulationController.inputs:execIn"),
+                            ("OnImpulseEvent.outputs:execOut", "PublishJointState.inputs:execIn"),
+                            ("OnImpulseEvent.outputs:execOut", "SubscribeJointState.inputs:execIn"),
+                            ("OnImpulseEvent.outputs:execOut", "PublishTF.inputs:execIn"),
+                            ("OnImpulseEvent.outputs:execOut", "PublishClock.inputs:execIn"),
+                            ("OnImpulseEvent.outputs:execOut", "ArticulationController.inputs:execIn"),
                             ("ReadSimTime.outputs:simulationTime", "PublishJointState.inputs:timeStamp"),
                             ("ReadSimTime.outputs:simulationTime", "PublishClock.inputs:timeStamp"),
                             ("ReadSimTime.outputs:simulationTime", "PublishTF.inputs:timeStamp"),
@@ -313,35 +297,11 @@ class MAPs(BaseSample):
                             ("SubscribeJointState.outputs:velocityCommand", "ArticulationController.inputs:velocityCommand"),
                             ("SubscribeJointState.outputs:effortCommand", "ArticulationController.inputs:effortCommand"),
                         ],
-            #             # og.Controller.Keys.CREATE_NODES: [
-            #             #     ("OnImpulseEvent", "omni.graph.action.OnImpulseEvent"),
-            #             #     ("ReadSimTime", "omni.isaac.core_nodes.IsaacReadSimulationTime"),
-            #             #     ("PublishJointState", "omni.isaac.ros_bridge.ROS1PublishJointState"),
-            #             #     ("SubscribeJointState", "omni.isaac.ros_bridge.ROS1SubscribeJointState"),
-            #             #     ("ArticulationController", "omni.isaac.core_nodes.IsaacArticulationController"),
-            #             #     ("PublishTF", "omni.isaac.ros_bridge.ROS1PublishTransformTree"),
-            #             #     ("PublishClock", "omni.isaac.ros_bridge.ROS1PublishClock"),
-            #             # ],
-            #             # og.Controller.Keys.CONNECT: [
-            #             #     ("OnImpulseEvent.outputs:execOut", "PublishJointState.inputs:execIn"),
-            #             #     ("OnImpulseEvent.outputs:execOut", "SubscribeJointState.inputs:execIn"),
-            #             #     ("OnImpulseEvent.outputs:execOut", "PublishTF.inputs:execIn"),
-            #             #     ("OnImpulseEvent.outputs:execOut", "PublishClock.inputs:execIn"),
-            #             #     ("OnImpulseEvent.outputs:execOut", "ArticulationController.inputs:execIn"),
-            #             #     ("ReadSimTime.outputs:simulationTime", "PublishJointState.inputs:timeStamp"),
-            #             #     ("ReadSimTime.outputs:simulationTime", "PublishClock.inputs:timeStamp"),
-            #             #     ("ReadSimTime.outputs:simulationTime", "PublishTF.inputs:timeStamp"),
-            #             #     ("SubscribeJointState.outputs:jointNames", "ArticulationController.inputs:jointNames"),
-            #             #     ("SubscribeJointState.outputs:positionCommand", "ArticulationController.inputs:positionCommand"),
-            #             #     ("SubscribeJointState.outputs:velocityCommand", "ArticulationController.inputs:velocityCommand"),
-            #             #     ("SubscribeJointState.outputs:effortCommand", "ArticulationController.inputs:effortCommand"),
-            #             # ],
                         og.Controller.Keys.SET_VALUES: [
                             # Setting the /Kuka target prim to Articulation Controller node
                             ("SubscribeJointState.inputs:topicName", "joint_command"),
                             ("ArticulationController.inputs:usePath", False),
                             ("ArticulationController.inputs:robotPath", ""),
-
                         ],
                     },
                 )
@@ -373,42 +333,28 @@ class MAPs(BaseSample):
                 target_prim_paths=["/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1))]
             )
 
-            # Setting the /Kuka target prim to Publish Transform Tree node
-            set_targets(
-                prim = stage.GetPrimAtPath("/World/Kuka_{}_{}/ActionGraph/PublishTF".format(self.station_info[i+1]['asset_name'], (i+1))),
-                #prim=stage.get_current_stage().GetPrimAtPath("/ActionGraph/PublishTF"),
-                attribute = "inputs:parentPrim",
-                target_prim_paths=["/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1))]
-            )
-
-
-
-
-
-
-        # while simulation_app.is_running():
-
-        #     # Run with a fixed step size
-        #     simulation_context.step(render=True)
-
-        #     # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
-        #     og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
-
-
-
-
+        
         # Control Switch
         if self.control_switch == 0:
             self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
-            # self.targets_x[shuttle_number] = 0.48
             # self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
-            # self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
+
+            # rospy.init_node('isaac_test', anonymous=True)
+            # self.pub = rospy.Publisher("/joint_command_desired", queue_size=1)
+
+
+            self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
+
+            # self._world.add_physics_callback("sim_step_ros", callback_fn=self.ros_tests)
+
         elif self.control_switch == 1:
             self._connect_pmc()  # Connect to PMC
             self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
             self._world.add_physics_callback("sim_step_move", callback_fn=self.send_xbots_positions)
 
+
         return
+    
 
     # Add Lab Setup reference
     async def _add_lab_setup(self):
@@ -445,24 +391,11 @@ class MAPs(BaseSample):
         self._shuttle_ref_geom.set_default_state(position=self._shuttle_position)
         self._shuttle_ref_geom.set_collision_approximation("none")
 
-    # Add working stations to the scene
-    # async def _add_station(self, station_number):
-    #     station_number = station_number + 1
-    #     self._station_ref_geom = self._world.scene.get_object(f"Station_{station_number}")
-    #     self._station_ref_geom.set_world_pose(position=self.station_info[station_number]['position'],
-    #                                             orientation=self.station_info[station_number]['orientation'])
-    #     self._station_ref_geom.set_default_state(position=self.station_info[station_number]['position'],
-    #                                             orientation=self.station_info[station_number]['orientation'])
-    
-        # self._asset_ref_geom = self._world.scene.get_object(f"station_{station_number}_asset_ref_geom")
-        # self._asset_ref_geom.set_local_scale(np.array([self.station_info[station_number]['scale']]))
-        # self._asset_ref_geom.set_world_pose(position= self.station_info[station_number]['position'])
-        # self._asset_ref_geom.set_default_state(position=self.station_info[station_number]['position'])
-        #self._asset_ref_geom.set_collision_approximation("none")
 
 
     async def _on_sim_control_event_async(self):
         world = self.get_world()
+        self.go_to_joint_state()
         self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
         world.remove_physics_callback("sim_step")
         world.add_physics_callback("sim_step", self.sim_xbots_movement)
@@ -488,13 +421,15 @@ class MAPs(BaseSample):
     
     def on_impulse_event(self, step_size):
         # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
-        og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
+
+        self.pub.publish(self.joint_state_request)
+
+        og.Controller.set(og.Controller.attribute("/World/Kuka_kr3_2/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
+
+    
 
     # Move xbots in simulation (No collision detection)
     def sim_xbots_movement(self, step_size):
-
-        # # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
-        # og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
 
         max_speed = 3.0 # m/s
         max_accel = 10.0 # m/s^2
@@ -745,31 +680,3 @@ class MAPs(BaseSample):
 
         # Activate xBots
         bot.activate_xbots()
-
-
-
-
-############################################################################################################
-
-    def print_cube_info(self, step_size):
-
-        position, orientation = self._cube.get_world_pose()
-        linear_velocity = self._cube.get_linear_velocity()
-        # will be shown on terminal
-        print("Cube position is : " + str(position))
-        print("Cube's orientation is : " + str(orientation))
-        print("Cube's linear velocity is : " + str(linear_velocity))
-
-    def _change_property(self, prim_path: str, attribute_name:str, value:float):
-        usd_path = Sdf.Path(prim_path + "." + attribute_name)
-        omni.kit.commands.execute(
-            "ChangeProperty",
-            prop_path=usd_path,
-            value=value,
-            prev=self._get_property(prim_path, attribute_name),
-        )
-
-    def _get_property(self, prim_path: str, attribute: str):
-        prim = self.stage.GetPrimAtPath(prim_path)
-        prim_property = prim.GetAttribute(attribute)
-        return prim_property.Get()
