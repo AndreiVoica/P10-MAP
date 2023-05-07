@@ -16,6 +16,11 @@
         <geometry>
           <mesh filename="package://kuka_kr4_support/meshes/kr4r600/collision/base_link.stl" />
         </geometry>
+        <inertial>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <mass value="6.64"/>
+          <inertia ixx="0.11" ixy="0.0" ixz="-0.02" iyy="0.06" iyz="-0.02" izz="0.08"/>
+        </inertial>
       </collision>
     </link>
     <link name="${prefix}link_1">
@@ -31,6 +36,11 @@
         <geometry>
           <mesh filename="package://kuka_kr4_support/meshes/kr4r600/collision/link_1.stl" />
         </geometry>
+      <inertial>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <mass value="3.49"/>
+        <inertia ixx="0.25" ixy="0.0" ixz="-0.02" iyy="0.02" iyz="0.0" izz="0.26"/>
+      </inertial>
       </collision>
     </link>
     <link name="${prefix}link_2">
@@ -46,6 +56,11 @@
         <geometry>
           <mesh filename="package://kuka_kr4_support/meshes/kr4r600/collision/link_2.stl" />
         </geometry>
+        <inertial>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <mass value="4.73"/>
+          <inertia ixx="1" ixy="0.01" ixz="-0.02" iyy="0.02" iyz="-0.05" izz="1"/>
+        </inertial>
       </collision>
     </link>
     <link name="${prefix}link_3">
@@ -61,6 +76,11 @@
         <geometry>
           <mesh filename="package://kuka_kr4_support/meshes/kr4r600/collision/link_3.stl" />
         </geometry>
+        <inertial>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <mass value="2.14"/>
+          <inertia ixx="0.85" ixy="0.0" ixz="-0.02" iyy="0.01" iyz="0.03" izz="0.84"/>
+        </inertial>
       </collision>
     </link>
     <link name="${prefix}link_4">
@@ -76,6 +96,11 @@
         <geometry>
           <mesh filename="package://kuka_kr4_support/meshes/kr4r600/collision/link_4.stl" />
         </geometry>
+        <inertial>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <mass value="1.1"/>
+          <inertia ixx="0.49" ixy="-0.03" ixz="-0.01" iyy="0.05" iyz="0.14" izz="0.45"/>
+        </inertial>
       </collision>
     </link>
     <link name="${prefix}link_5">
@@ -91,6 +116,11 @@
         <geometry>
           <mesh filename="package://kuka_kr4_support/meshes/kr4r600/collision/link_5.stl" />
         </geometry>
+        <inertial>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <mass value="0.54"/>
+          <inertia ixx="0.26" ixy="-0.02" ixz="-0.01" iyy="0.04" iyz="0.1" izz="0.22"/>
+        </inertial>
       </collision>
     </link>
     <link name="${prefix}link_6">
@@ -106,6 +136,11 @@
         <geometry>
           <mesh filename="package://kuka_kr4_support/meshes/kr4r600/collision/link_6.stl" />
         </geometry>
+        <inertial>
+          <origin rpy="0 0 0" xyz="0 0 0"/>
+          <mass value="0.03"/>
+          <inertia ixx="0.02" ixy="0.0" ixz="-0.02" iyy="0.11" iyz="0.01" izz="0.01"/>
+        </inertial>
       </collision>
     </link>
 
@@ -113,46 +148,46 @@
     <link name="${prefix}tool0" />
 
     <joint name="${prefix}joint_a1" type="revolute">
-      <origin xyz="0 0 0.33" rpy="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.33"/>
       <parent link="${prefix}base_link"/>
       <child link="${prefix}link_1"/>
       <axis xyz="0 0 -1"/>
-      <limit lower="${radians(-170)}" upper="${radians(170)}" effort="0" velocity="${radians(530)}"/>
+      <limit lower="${radians(-170)}" upper="${radians(170)}" effort="100" velocity="${radians(530)}"/>
     </joint>
     <joint name="${prefix}joint_a2" type="revolute">
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin rpy="0 -1 0" xyz="0.020 0 0"/>
       <parent link="${prefix}link_1"/>
       <child link="${prefix}link_2"/>
       <axis xyz="0 1 0"/>
-      <limit lower="${radians(-195)}" upper="${radians(40)}" effort="0" velocity="${radians(529)}"/>
+      <limit lower="${radians(-195)}" upper="${radians(40)}" effort="100" velocity="${radians(529)}"/>
     </joint>
     <joint name="${prefix}joint_a3" type="revolute">
       <origin xyz="0.290 0 0" rpy="0 0 0"/>
       <parent link="${prefix}link_2"/>
       <child link="${prefix}link_3"/>
       <axis xyz="0 1 0"/>
-      <limit lower="${radians(-115)}" upper="${radians(150)}" effort="0" velocity="${radians(538)}"/>
+      <limit lower="${radians(-115)}" upper="${radians(150)}" effort="100" velocity="${radians(538)}"/>
     </joint>
     <joint name="${prefix}joint_a4" type="revolute">
       <origin xyz="0.310 0 0.020" rpy="0 0 0"/>
       <parent link="${prefix}link_3"/>
       <child link="${prefix}link_4"/>
       <axis xyz="-1 0 0"/>
-      <limit lower="${radians(-185)}" upper="${radians(185)}" effort="0" velocity="${radians(600)}"/>
+      <limit lower="${radians(-185)}" upper="${radians(185)}" effort="100" velocity="${radians(600)}"/>
     </joint>
     <joint name="${prefix}joint_a5" type="revolute">
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <parent link="${prefix}link_4"/>
       <child link="${prefix}link_5"/>
       <axis xyz="0 1 0"/>
-      <limit lower="${radians(-120)}" upper="${radians(120)}" effort="0" velocity="${radians(600)}"/>
+      <limit lower="${radians(-120)}" upper="${radians(120)}" effort="100" velocity="${radians(600)}"/>
     </joint>
     <joint name="${prefix}joint_a6" type="revolute">
       <origin xyz="0.075 0 0" rpy="0 0 0"/>
       <parent link="${prefix}link_5"/>
       <child link="${prefix}link_6"/>
       <axis xyz="-1 0 0"/>
-      <limit lower="${radians(-350)}" upper="${radians(350)}" effort="0" velocity="${radians(800)}"/>
+      <limit lower="${radians(-350)}" upper="${radians(350)}" effort="100" velocity="${radians(800)}"/>
     </joint>
     <joint name="${prefix}joint_a6-tool0" type="fixed">
       <parent link="${prefix}link_6"/>
