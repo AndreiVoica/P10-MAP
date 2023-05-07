@@ -12,7 +12,7 @@
        all RAL colours converted using http://www.visual-graphics.de/en/customer-care/ral-colours
   -->
   <link name="world"/>
-  <!-- box shaped table as base for the 2 Pandas -->
+  <!-- box shaped table as base for kukas -->
   <link name="base">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0.5"/>
@@ -221,7 +221,91 @@
     <child link="kr3_pp1_tool0"/>
     <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
   </joint>
-  <!-- <xacro:kuka_gripper arm_id="$(arg arm_id_1)" rpy="0 0 ${-pi/4}" connected_to="$(arg arm_id_1)_flange" /> -->
+  <joint name="kr3_pp1_schunk_base_joint" type="fixed">
+    <parent link="kr3_pp1_tool0"/>
+    <child link="kr3_pp1_schunk_base_link"/>
+    <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0"/>
+  </joint>
+  <link name="kr3_pp1_schunk_base_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.000798709905497759 0.0330041725900681 0.000181924965941612"/>
+      <mass value="3.08428949350963E-05"/>
+      <inertia ixx="1.21752033814272E-08" ixy="-1.76830031372158E-12" ixz="3.1179861790657E-13" iyy="2.61959369553983E-09" iyz="6.34798469366256E-12" izz="1.30729118706546E-08"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/base_link.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/base_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pp1_schunk_left_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0054865 -0.0099792 0.0019878"/>
+      <mass value="9.1881E-07"/>
+      <inertia ixx="2.3947E-11" ixy="-1.4195E-11" ixz="4.575E-12" iyy="4.2053E-11" iyz="4.362E-12" izz="5.6785E-11"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/left_link.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/left_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kr3_pp1_schunk_joint_left" type="prismatic">
+    <origin rpy="1.5708 0 -3.1416" xyz="0 -8.2944E-05 0.08056"/>
+    <parent link="kr3_pp1_schunk_base_link"/>
+    <child link="kr3_pp1_schunk_left_link"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="20" lower="-0.0047" upper="1E-05" velocity="2"/>
+  </joint>
+  <link name="kr3_pp1_schunk_right_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0039401 -0.0099792 0.0021878"/>
+      <mass value="9.1881E-07"/>
+      <inertia ixx="2.3947E-11" ixy="-1.4195E-11" ixz="4.575E-12" iyy="4.2053E-11" iyz="4.362E-12" izz="5.6785E-11"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/right_link.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/right_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kr3_pp1_schunk_joint_right" type="prismatic">
+    <origin rpy="1.5708 0 0" xyz="0 -8.2944E-05 0.08056"/>
+    <parent link="kr3_pp1_schunk_base_link"/>
+    <child link="kr3_pp1_schunk_right_link"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="20.00001" lower="-0.0047" upper="1E-05" velocity="2.00001"/>
+  </joint>
   <link name="kr3_pp2_base_link">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -401,6 +485,454 @@
   <joint name="kr3_pp2_flange-tool0" type="fixed">
     <parent link="kr3_pp2_flange"/>
     <child link="kr3_pp2_tool0"/>
+    <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
+  </joint>
+  <joint name="kr3_pp2_schunk_base_joint" type="fixed">
+    <parent link="kr3_pp2_tool0"/>
+    <child link="kr3_pp2_schunk_base_link"/>
+    <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0"/>
+  </joint>
+  <link name="kr3_pp2_schunk_base_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.000798709905497759 0.0330041725900681 0.000181924965941612"/>
+      <mass value="3.08428949350963E-05"/>
+      <inertia ixx="1.21752033814272E-08" ixy="-1.76830031372158E-12" ixz="3.1179861790657E-13" iyy="2.61959369553983E-09" iyz="6.34798469366256E-12" izz="1.30729118706546E-08"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/base_link.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/base_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pp2_schunk_left_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0054865 -0.0099792 0.0019878"/>
+      <mass value="9.1881E-07"/>
+      <inertia ixx="2.3947E-11" ixy="-1.4195E-11" ixz="4.575E-12" iyy="4.2053E-11" iyz="4.362E-12" izz="5.6785E-11"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/left_link.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/left_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kr3_pp2_schunk_joint_left" type="prismatic">
+    <origin rpy="1.5708 0 -3.1416" xyz="0 -8.2944E-05 0.08056"/>
+    <parent link="kr3_pp2_schunk_base_link"/>
+    <child link="kr3_pp2_schunk_left_link"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="20" lower="-0.0047" upper="1E-05" velocity="2"/>
+  </joint>
+  <link name="kr3_pp2_schunk_right_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0039401 -0.0099792 0.0021878"/>
+      <mass value="9.1881E-07"/>
+      <inertia ixx="2.3947E-11" ixy="-1.4195E-11" ixz="4.575E-12" iyy="4.2053E-11" iyz="4.362E-12" izz="5.6785E-11"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/right_link.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://schunk_25nnb/meshes/right_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="kr3_pp2_schunk_joint_right" type="prismatic">
+    <origin rpy="1.5708 0 0" xyz="0 -8.2944E-05 0.08056"/>
+    <parent link="kr3_pp2_schunk_base_link"/>
+    <child link="kr3_pp2_schunk_right_link"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="20.00001" lower="-0.0047" upper="1E-05" velocity="2.00001"/>
+  </joint>
+  <link name="kr3_disp_base_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/base_link.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.5058823529411764 0.47058823529411764 0.38823529411764707 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/base_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_disp_link_1">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_1.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_1.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_disp_link_2">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_2.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_2.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_disp_link_3">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_3.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_3.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_disp_link_4">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_4.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_4.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_disp_link_5">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_5.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_5.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_disp_link_6">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_6.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.5058823529411764 0.47058823529411764 0.38823529411764707 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_6.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Following REP199, this frame shall be use to attach EEF or other equipment -->
+  <link name="kr3_disp_flange"/>
+  <joint name="kr3_disp_joint_a1" type="revolute">
+    <origin rpy="0 0 0" xyz="0 0 0.345"/>
+    <parent link="kr3_disp_base_link"/>
+    <child link="kr3_disp_link_1"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="0" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
+  </joint>
+  <joint name="kr3_disp_joint_a2" type="revolute">
+    <origin rpy="0 0 0" xyz="0.020 0 0"/>
+    <parent link="kr3_disp_link_1"/>
+    <child link="kr3_disp_link_2"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="0" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
+  </joint>
+  <joint name="kr3_disp_joint_a3" type="revolute">
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
+    <parent link="kr3_disp_link_2"/>
+    <child link="kr3_disp_link_3"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="0" lower="-1.9198621771937625" upper="2.705260340591211" velocity="9.389871375729493"/>
+  </joint>
+  <joint name="kr3_disp_joint_a4" type="revolute">
+    <origin rpy="0 0 0" xyz="0 0 0.020"/>
+    <parent link="kr3_disp_link_3"/>
+    <child link="kr3_disp_link_4"/>
+    <axis xyz="-1 0 0"/>
+    <limit effort="0" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
+  </joint>
+  <joint name="kr3_disp_joint_a5" type="revolute">
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
+    <parent link="kr3_disp_link_4"/>
+    <child link="kr3_disp_link_5"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="0" lower="-2.0943951023931953" upper="2.0943951023931953" velocity="10.471975511965978"/>
+  </joint>
+  <joint name="kr3_disp_joint_a6" type="revolute">
+    <origin rpy="0 0 0" xyz="0.075 0 0"/>
+    <parent link="kr3_disp_link_5"/>
+    <child link="kr3_disp_link_6"/>
+    <axis xyz="-1 0 0"/>
+    <limit effort="0" lower="-6.1086523819801535" upper="6.1086523819801535" velocity="13.962634015954636"/>
+  </joint>
+  <joint name="kr3_disp_joint_a6-tool0" type="fixed">
+    <parent link="kr3_disp_link_6"/>
+    <child link="kr3_disp_flange"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <!-- ROS base_link to KUKA $ROBROOT coordinate system transform -->
+  <!-- <link name="${prefix}base" /> -->
+  <joint name="kr3_disp__joint_base" type="fixed">
+    <origin rpy="0 0 -3.141592653589793" xyz="1.9 -0.5 1"/>
+    <parent link="base"/>
+    <child link="kr3_disp_base_link"/>
+  </joint>
+  <!-- This frame corresponds to the $TOOL coordinate system in KUKA KRC controllers -->
+  <link name="kr3_disp_tool0"/>
+  <joint name="kr3_disp_flange-tool0" type="fixed">
+    <parent link="kr3_disp_flange"/>
+    <child link="kr3_disp_tool0"/>
+    <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
+  </joint>
+  <!-- <xacro:kuka_gripper arm_id="$(arg arm_id_1)" rpy="0 0 ${-pi/4}" connected_to="$(arg arm_id_1)_flange" /> -->
+  <link name="kr3_pip_base_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/base_link.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.5058823529411764 0.47058823529411764 0.38823529411764707 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/base_link.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pip_link_1">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_1.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_1.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pip_link_2">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_2.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_2.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pip_link_3">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_3.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_3.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pip_link_4">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_4.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_4.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pip_link_5">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_5.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.9450980392156862 0.9254901960784314 1.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_5.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="kr3_pip_link_6">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/link_6.stl"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.5058823529411764 0.47058823529411764 0.38823529411764707 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/collision/link_6.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Following REP199, this frame shall be use to attach EEF or other equipment -->
+  <link name="kr3_pip_flange"/>
+  <joint name="kr3_pip_joint_a1" type="revolute">
+    <origin rpy="0 0 0" xyz="0 0 0.345"/>
+    <parent link="kr3_pip_base_link"/>
+    <child link="kr3_pip_link_1"/>
+    <axis xyz="0 0 -1"/>
+    <limit effort="0" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
+  </joint>
+  <joint name="kr3_pip_joint_a2" type="revolute">
+    <origin rpy="0 0 0" xyz="0.020 0 0"/>
+    <parent link="kr3_pip_link_1"/>
+    <child link="kr3_pip_link_2"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="0" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
+  </joint>
+  <joint name="kr3_pip_joint_a3" type="revolute">
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
+    <parent link="kr3_pip_link_2"/>
+    <child link="kr3_pip_link_3"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="0" lower="-1.9198621771937625" upper="2.705260340591211" velocity="9.389871375729493"/>
+  </joint>
+  <joint name="kr3_pip_joint_a4" type="revolute">
+    <origin rpy="0 0 0" xyz="0 0 0.020"/>
+    <parent link="kr3_pip_link_3"/>
+    <child link="kr3_pip_link_4"/>
+    <axis xyz="-1 0 0"/>
+    <limit effort="0" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
+  </joint>
+  <joint name="kr3_pip_joint_a5" type="revolute">
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
+    <parent link="kr3_pip_link_4"/>
+    <child link="kr3_pip_link_5"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="0" lower="-2.0943951023931953" upper="2.0943951023931953" velocity="10.471975511965978"/>
+  </joint>
+  <joint name="kr3_pip_joint_a6" type="revolute">
+    <origin rpy="0 0 0" xyz="0.075 0 0"/>
+    <parent link="kr3_pip_link_5"/>
+    <child link="kr3_pip_link_6"/>
+    <axis xyz="-1 0 0"/>
+    <limit effort="0" lower="-6.1086523819801535" upper="6.1086523819801535" velocity="13.962634015954636"/>
+  </joint>
+  <joint name="kr3_pip_joint_a6-tool0" type="fixed">
+    <parent link="kr3_pip_link_6"/>
+    <child link="kr3_pip_flange"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <!-- ROS base_link to KUKA $ROBROOT coordinate system transform -->
+  <!-- <link name="${prefix}base" /> -->
+  <joint name="kr3_pip__joint_base" type="fixed">
+    <origin rpy="0 0 -3.141592653589793" xyz="1.9 0.5 1"/>
+    <parent link="base"/>
+    <child link="kr3_pip_base_link"/>
+  </joint>
+  <!-- This frame corresponds to the $TOOL coordinate system in KUKA KRC controllers -->
+  <link name="kr3_pip_tool0"/>
+  <joint name="kr3_pip_flange-tool0" type="fixed">
+    <parent link="kr3_pip_flange"/>
+    <child link="kr3_pip_tool0"/>
     <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
   </joint>
   <!-- <xacro:kuka_gripper arm_id="$(arg arm_id_2)" rpy="0 0 ${-pi/4}" connected_to="$(arg arm_id_2)_flange" /> -->
