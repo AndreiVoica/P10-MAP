@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<robot name="kuka_multiple_arms" xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <!-- add arms names prefixes -->
+    <xacro:arg name="arm_id_1" default="kr3_pp1_" />
+    <xacro:arg name="arm_id_2" default="kr3_pp2_" />
+
+    <!-- load arm/hand models and utils (which adds the robot inertia tags to be Gazebo-simulation ready) -->
+    <!-- <xacro:include filename="$(find kuka_kr3_support)/urdf/kr3r540_macro_v2.xacro"/> -->
+    <xacro:include filename="$(find kuka_kr3_support)/urdf/kr3r540_macro_v2.xacro"/>
+
+    <link name="world"/> 
+ 
+    <!-- box shaped table as base for the 2 Pandas -->  
+    <link name="base">
+        <visual>
+            <origin xyz="0 0 0.5" rpy="0 0 0" />
+            <geometry>
+                <box size="1 2 1" />
+            </geometry>
+            <material name="White">
+                <color rgba="1.0 1.0 1.0 1.0" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0.5" rpy="0 0 0" />
+            <geometry>
+                <box size="1 2 1" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <mass value="10.0"/>
+            <inertia ixx="0.001" ixy="0.0" ixz="0.001" iyy="0.0" iyz="0.0" izz="0.001"/>
+        </inertial>
+        
+    </link>
+
+    <joint name="base_to_world" type="fixed">
+        <parent link="world"/>
+        <child link="base"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </joint>
+
+
+    <!-- ROBOT 1 with gripper -->
+    <xacro:kuka_kr3r540 prefix="$(arg arm_id_1)" connected_to="base"  xyz="0 -0.5 1"  />
+    <!-- <xacro:kuka_gripper arm_id="$(arg arm_id_1)" rpy="0 0 ${-pi/4}" connected_to="$(arg arm_id_1)_flange" /> -->
+
+    <!-- ROBOT 2 with gripper -->
+    <xacro:kuka_kr3r540 prefix="$(arg arm_id_2)" connected_to="base"  xyz="0 0.5 1"  />
+    <!-- <xacro:kuka_gripper arm_id="$(arg arm_id_2)" rpy="0 0 ${-pi/4}" connected_to="$(arg arm_id_2)_flange" /> -->
+
+    <!-- <xacro:franka_arm arm_id="$(arg arm_id_2)" connected_to="base" xyz="0 0.5 1" gazebo="true" safety_distance="0.03" joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}"/>
+    <xacro:franka_hand arm_id="$(arg arm_id_2)" rpy="0 0 ${-pi/4}" connected_to="$(arg arm_id_2)_link8" gazebo="true" safety_distance="0.03" /> -->
+
+</robot>
