@@ -1,0 +1,274 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="schunk_25nnb" params="prefix:='schunk_gripper' rpy:='0 0 0' xyz:='0 0 0' connected_to:='0 0 0'">
+
+      <xacro:unless value="${not connected_to}">
+        <joint name="${prefix}base_joint" type="fixed">
+          <parent link="${connected_to}" />
+          <child link="${prefix}base_link" />
+          <origin xyz="${xyz}" rpy="${rpy}" />
+        </joint>
+      </xacro:unless>
+    
+    <link name="${prefix}base_link">
+      <inertial>
+        <origin
+          xyz="-0.000798709905497759 0.0330041725900681 0.000181924965941612"
+          rpy="0 0 0" />
+        <mass
+          value="3.08428949350963E-05" />
+        <inertia
+          ixx="1.21752033814272E-08"
+          ixy="-1.76830031372158E-12"
+          ixz="3.1179861790657E-13"
+          iyy="2.61959369553983E-09"
+          iyz="6.34798469366256E-12"
+          izz="1.30729118706546E-08" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0" />
+        <geometry>
+          <mesh
+            filename="package://schunk_25nnb/meshes/base_link.STL" />
+        </geometry>
+        <material
+          name="">
+          <color
+            rgba="1 1 1 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0" />
+        <geometry>
+          <mesh
+            filename="package://schunk_25nnb/meshes/base_link.STL" />
+        </geometry>
+      </collision>
+    </link>
+    <link
+      name="${prefix}left_link">
+      <inertial>
+        <origin
+          xyz="0.0054865 -0.0099792 0.0019878"
+          rpy="0 0 0" />
+        <mass
+          value="9.1881E-07" />
+        <inertia
+          ixx="2.3947E-11"
+          ixy="-1.4195E-11"
+          ixz="4.575E-12"
+          iyy="4.2053E-11"
+          iyz="4.362E-12"
+          izz="5.6785E-11" />
+      </inertial>
+      <visual>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0" />
+        <geometry>
+          <mesh
+            filename="package://schunk_25nnb/meshes/left_link.STL" />
+        </geometry>
+        <material
+          name="">
+          <color
+            rgba="1 1 1 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0" />
+        <geometry>
+          <mesh
+            filename="package://schunk_25nnb/meshes/left_link.STL" />
+        </geometry>
+      </collision>
+    </link>
+      <joint
+        name="${prefix}joint_left"
+        type="prismatic">
+        <origin
+          xyz="0 -8.2944E-05 0.08056"
+          rpy="1.5708 0 -3.1416" />
+        <parent
+          link="${prefix}base_link" />
+        <child
+          link="${prefix}left_link" />
+        <axis
+          xyz="1 0 0" />
+        <limit
+          lower="-0.0047"
+          upper="1E-05"
+          effort="20.0001"
+          velocity="2.00001" />
+      </joint>
+      <link
+        name="${prefix}right_link">
+        <inertial>
+          <origin
+            xyz="0.0039401 -0.0099792 0.0021878"
+            rpy="0 0 0" />
+          <mass
+            value="9.1881E-07" />
+          <inertia
+            ixx="2.3947E-11"
+            ixy="-1.4195E-11"
+            ixz="4.575E-12"
+            iyy="4.2053E-11"
+            iyz="4.362E-12"
+            izz="5.6785E-11" />
+        </inertial>
+        <visual>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0" />
+          <geometry>
+            <mesh
+              filename="package://schunk_25nnb/meshes/right_link.STL" />
+          </geometry>
+          <material
+            name="">
+            <color
+              rgba="1 1 1 1" />
+          </material>
+        </visual>
+        <collision>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0" />
+          <geometry>
+            <mesh
+              filename="package://schunk_25nnb/meshes/right_link.STL" />
+          </geometry>
+        </collision>
+      </link>
+      <joint
+        name="${prefix}joint_right"
+        type="prismatic">
+        <origin
+          xyz="0 -8.2944E-05 0.08056"
+          rpy="1.5708 0 0" />
+        <parent
+          link="${prefix}base_link" />
+        <child
+          link="${prefix}right_link" />
+        <axis
+          xyz="1 0 0" />
+        <limit
+          lower="-0.0047"
+          upper="1E-05"
+          effort="20.00001"
+          velocity="2.00001" />
+      </joint>
+    </xacro:macro>
+
+  <xacro:macro name="pipette" params="prefix:='pipette' rpy:='0 0 0' xyz:='0 0 0' connected_to:='0 0 0'">
+
+      <xacro:unless value="${not connected_to}">
+        <joint name="${prefix}base_joint" type="fixed">
+          <parent link="${connected_to}" />
+          <child link="${prefix}base_link" />
+          <origin xyz="${xyz}" rpy="${rpy}" />
+        </joint>
+      </xacro:unless>
+    
+      <link name="${prefix}base_link">
+        <inertial>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0" />
+          <mass
+            value="3.08428949350963E-05" />
+          <inertia
+            ixx="1.21752033814272E-08"
+            ixy="-1.76830031372158E-12"
+            ixz="3.1179861790657E-13"
+            iyy="2.61959369553983E-09"
+            iyz="6.34798469366256E-12"
+            izz="1.30729118706546E-08" />
+        </inertial>
+        <visual>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0"  />
+          <geometry>
+            <mesh
+              filename="package://kuka_kr3_support/meshes/kr3r540/visual/Pipette.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+          <material
+            name="">
+            <color
+              rgba="1 1 1 1" />
+          </material>
+        </visual>
+        <collision>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0" />
+          <geometry>
+            <mesh
+              filename="package://kuka_kr3_support/meshes/kr3r540/collision/Pipette.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+        </collision>
+      </link>
+    </xacro:macro>
+
+    <xacro:macro name="dispenser" params="prefix:='dispenser' rpy:='0 0 0' xyz:='0 0 0' connected_to:='0 0 0'">
+
+      <xacro:unless value="${not connected_to}">
+        <joint name="${prefix}base_joint" type="fixed">
+          <parent link="${connected_to}" />
+          <child link="${prefix}base_link" />
+          <origin xyz="${xyz}" rpy="${rpy}" />
+        </joint>
+      </xacro:unless>
+    
+      <link name="${prefix}base_link">
+        <inertial>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0" />
+          <mass
+            value="3.08428949350963E-05" />
+          <inertia
+            ixx="1.21752033814272E-08"
+            ixy="-1.76830031372158E-12"
+            ixz="3.1179861790657E-13"
+            iyy="2.61959369553983E-09"
+            iyz="6.34798469366256E-12"
+            izz="1.30729118706546E-08" />
+        </inertial>
+        <visual>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0" />
+          <geometry>
+            <mesh
+            filename="package://kuka_kr3_support/meshes/kr3r540/visual/Dispenser.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+          <material
+            name="">
+            <color
+              rgba="1 1 1 1" />
+          </material>
+        </visual>
+        <collision>
+          <origin
+            xyz="0 0 0"
+            rpy="0 0 0" />
+          <geometry>
+            <mesh
+            filename="package://kuka_kr3_support/meshes/kr3r540/collision/Dispenser.stl" scale="0.001 0.001 0.001"/>
+          </geometry>
+        </collision>
+      </link>
+  </xacro:macro>
+
+
+  </robot>
