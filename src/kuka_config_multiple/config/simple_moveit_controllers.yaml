@@ -1,0 +1,77 @@
+controller_list:
+  - name: KUKA1_arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr3_1_joint_a1
+      - kr3_1_joint_a2
+      - kr3_1_joint_a3
+      - kr3_1_joint_a4
+      - kr3_1_joint_a5
+      - kr3_1_joint_a6
+  - name: KUKA1_hand_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr3_1_schunk_joint_left
+      - kr3_1_schunk_joint_right
+  - name: KUKA2_arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr3_2_joint_a1
+      - kr3_2_joint_a2
+      - kr3_2_joint_a3
+      - kr3_2_joint_a4
+      - kr3_2_joint_a5
+      - kr3_2_joint_a6
+  - name: KUKA2_hand_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr3_2_schunk_joint_left
+      - kr3_2_schunk_joint_right
+  - name: KUKA3_arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr3_3_joint_a1
+      - kr3_3_joint_a2
+      - kr3_3_joint_a3
+      - kr3_3_joint_a4
+      - kr3_3_joint_a5
+      - kr3_3_joint_a6
+  - name: KUKA4_arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr3_4_joint_a1
+      - kr3_4_joint_a2
+      - kr3_4_joint_a3
+      - kr3_4_joint_a4
+      - kr3_4_joint_a5
+      - kr3_4_joint_a6
+  - name: KUKA5_arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr4_5_joint_a1
+      - kr4_5_joint_a2
+      - kr4_5_joint_a3
+      - kr4_5_joint_a4
+      - kr4_5_joint_a5
+      - kr4_5_joint_a6
+  - name: KUKA5_hand_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - kr4_5_schunk_joint_left
+      - kr4_5_schunk_joint_right
