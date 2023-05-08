@@ -34,6 +34,8 @@ from omni.isaac.core.utils.prims import set_targets
 import asyncio
 import rospy
 from sensor_msgs.msg import JointState
+from std_msgs.msg import String
+from geometry_msgs.msg import Pose
 from math import tau
 
 import sys
@@ -90,13 +92,13 @@ class MAPs(BaseSample):
         self.xbot_ids = [i for i in range(1, self._number_shuttles + 1)] 
 
         # Trays
-        self._number_trayVial = 4
-        self._trayVial_position = np.array([1.2277, -1.2, 1])
-        self._trayVial_scale = 0.01
+        self._number_tray_vial = 4
+        self._tray_vial_position = np.array([1.2277, -1.2, 1])
+        self._tray_vial_scale = 0.01
 
-        self._number_trayFlask = 4
-        self._trayFlask_position = np.array([1.42, -1.2, 1])
-        self._trayFlask_scale = 0.01
+        self._number_tray_beaker = 4
+        self._tray_beaker_position = np.array([1.42, -1.2, 1])
+        self._tray_beaker_scale = 0.01
 
         # Flyways:
         # DEFINE FLYWAYS MATRIX
@@ -178,9 +180,12 @@ class MAPs(BaseSample):
 
         self.current_pos_dict = {} # Dictionary to store shuttle current positions
 
-        # Define rospy topic names
+        self.move_group_name = String() # ROS topic name for move group
+
         self.joint_state_request = JointState()
-        self.joint_state_request.name = ["joint_a1", "joint_a2","joint_a3", "joint_a4", "joint_a5","joint_a6"]
+        self.pose_request = Pose()  
+        # self.joint_state_request.name = ["joint_a1", "joint_a2","joint_a3", "joint_a4", "joint_a5","joint_a6"]
+
 
         self.control_switch = 0 # 0: Sim, 1: PMC
 
@@ -223,15 +228,15 @@ class MAPs(BaseSample):
                                          name="shuttle_{}_ref_geom".format(i+1), collision=True))
             
         # Add Trays
-        for i in range(self._number_trayVial):
-            add_reference_to_stage(usd_path=self.asset_paths["tray_vial"], prim_path="/World/LabSetup/Grid/trayVial_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/trayVial_{}".format(i+1),
-                                         name="trayVial_{}_ref_geom".format(i+1), collision=True))
+        for i in range(self._number_tray_vial):
+            add_reference_to_stage(usd_path=self.asset_paths["tray_vial"], prim_path="/World/LabSetup/Grid/tray_vial_{}".format(i+1))
+            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/tray_vial_{}".format(i+1),
+                                         name="tray_vial_{}_ref_geom".format(i+1), collision=True))
 
-        for i in range(self._number_trayFlask):
-            add_reference_to_stage(usd_path=self.asset_paths["tray_flask"], prim_path="/World/LabSetup/Grid/trayFlask_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/trayFlask_{}".format(i+1),
-                                         name="trayFlask_{}_ref_geom".format(i+1), collision=True))
+        for i in range(self._number_tray_beaker):
+            add_reference_to_stage(usd_path=self.asset_paths["tray_flask"], prim_path="/World/LabSetup/Grid/tray_beaker_{}".format(i+1))
+            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/tray_beaker_{}".format(i+1),
+                                         name="tray_beaker_{}_ref_geom".format(i+1), collision=True))
             
         # # Add Xform reference for each station
         # for i in range(len(self.station_info)):
@@ -280,10 +285,10 @@ class MAPs(BaseSample):
                     await self._add_flyway(i, j)
         for i in range(self._number_shuttles):
             await self._add_shuttle(i)
-        for i in range(self._number_trayVial):
-            await self._add_trayVial(i)
-        for i in range(self._number_trayFlask):
-            await self._add_trayFlask(i)
+        for i in range(self._number_tray_vial):
+            await self._add_tray_vial(i)
+        for i in range(self._number_tray_beaker):
+            await self._add_tray_beaker(i)
         # for i in range(len(self.station_info)):
         #     await self._add_station(i)
 
@@ -302,10 +307,12 @@ class MAPs(BaseSample):
 
         # Create rospy node to publish requested joint positions
         rospy.init_node('isaac_joint_request_publisher')
-        self.pub = rospy.Publisher('/kr3_1/joint_command_isaac', JointState, queue_size=10)
-        # self.pub2 = rospy.Publisher('/kr3_2/joint_command_isaac', JointState, queue_size=10)
+        self.pub_group = rospy.Publisher('/joint_move_group_isaac', String, queue_size=10)
+        self.pub_joints = rospy.Publisher('/joint_command_isaac', JointState, queue_size=10)
+        # self.pub_pose = rospy.Publisher('/joint_command_isaac', Pose, queue_size=10)
 
-        self.joint_state_request.position = [0 , -1 , -tau/8 , -tau/4 , 0 , tau/6 ]
+        self.move_group_name = 'KUKA2_arm'
+        self.joint_state_request.position = [0.6 , -1 , -tau/8 , -tau/4 , 0 , tau/6 ]
 
 
         # Creating a action graph with ROS component nodes
@@ -347,7 +354,6 @@ class MAPs(BaseSample):
         except Exception as e:
             print(e)
 
-
         # Setting the /Kuka target prim to Publish JointState node
         set_targets(
             prim = stage.GetPrimAtPath("/World/Kuka_Multiple_Arms/ActionGraph/PublishJointState"),
@@ -376,7 +382,7 @@ class MAPs(BaseSample):
             # self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
 
             # rospy.init_node('isaac_test', anonymous=True)
-            # self.pub = rospy.Publisher("/joint_command_desired", queue_size=1)
+            # self.pub_joints = rospy.Publisher("/joint_command_desired", queue_size=1)
             #self.on_impulse_event()
 
             self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
@@ -427,19 +433,19 @@ class MAPs(BaseSample):
         self._shuttle_ref_geom.set_collision_approximation("none")
 
     # Add trays to the scene
-    async def _add_trayVial(self, trayVial_number):
-        self._trayVial_ref_geom = self._world.scene.get_object(f"trayVial_{trayVial_number+1}_ref_geom")
-        self._trayVial_ref_geom.set_local_scale(np.array([self._trayVial_scale]))
-        self._trayVial_ref_geom.set_world_pose(position= self._trayVial_position + (0, 0, 0.015 * (trayVial_number)))
-        self._trayVial_ref_geom.set_default_state(position=self._trayVial_position)
-        self._trayVial_ref_geom.set_collision_approximation("none")
+    async def _add_tray_vial(self, tray_vial_number):
+        self._tray_vial_ref_geom = self._world.scene.get_object(f"tray_vial_{tray_vial_number+1}_ref_geom")
+        self._tray_vial_ref_geom.set_local_scale(np.array([self._tray_vial_scale]))
+        self._tray_vial_ref_geom.set_world_pose(position= self._tray_vial_position + (0, 0, 0.015 * (tray_vial_number)))
+        self._tray_vial_ref_geom.set_default_state(position=self._tray_vial_position)
+        self._tray_vial_ref_geom.set_collision_approximation("none")
 
-    async def _add_trayFlask(self, trayFlask_number):
-        self._trayFlask_ref_geom = self._world.scene.get_object(f"trayFlask_{trayFlask_number+1}_ref_geom")
-        self._trayFlask_ref_geom.set_local_scale(np.array([self._trayFlask_scale]))
-        self._trayFlask_ref_geom.set_world_pose(position= self._trayFlask_position + (0, 0, 0.021 * (trayFlask_number)))
-        self._trayFlask_ref_geom.set_default_state(position=self._trayFlask_position)
-        self._trayFlask_ref_geom.set_collision_approximation("none")
+    async def _add_tray_beaker(self, tray_beaker_number):
+        self._tray_beaker_ref_geom = self._world.scene.get_object(f"tray_beaker_{tray_beaker_number+1}_ref_geom")
+        self._tray_beaker_ref_geom.set_local_scale(np.array([self._tray_beaker_scale]))
+        self._tray_beaker_ref_geom.set_world_pose(position= self._tray_beaker_position + (0, 0, 0.021 * (tray_beaker_number)))
+        self._tray_beaker_ref_geom.set_default_state(position=self._tray_beaker_position)
+        self._tray_beaker_ref_geom.set_collision_approximation("none")
 
     ## Interface Functions:
     async def _on_sim_control_event_async(self):
@@ -459,11 +465,22 @@ class MAPs(BaseSample):
         return
     
     async def _on_start_experiment_event_async(self):
-        # Publish Joints for the robot
-        # # self.pub.publish(self.joint_state_request)
-        self.on_impulse_event()
-        self.joint_state_request.position = [0 , -1 , -tau/2 , -tau/4 , 0 , tau/6 ]
+        world = self.get_world()
 
+        # Publish Joints for the robot
+        # self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
+
+        # self.on_impulse_event()
+        # self.joint_state_request.position = [0 , -1 , -tau/2 , -tau/4 , 0 , tau/6 ]
+        
+        # Send shuttles to target
+        self.targets_x, self.targets_y = ([0.06, 0.30],[0.66, 0.18]) #([x1, x2],[y1, y2])
+        world.add_physics_callback("sim_step", self.sim_xbots_movement)
+
+        self.joint_state_request.position = [0.6 , -1 , -tau/8 , -tau/4 , 0 , tau/6 ]
+
+        self.pub_group.publish(self.move_group_name)
+        self.pub_joints.publish(self.joint_state_request)
 
         return
 
@@ -480,16 +497,17 @@ class MAPs(BaseSample):
     def world_cleanup(self):
         return
     
+
+
     def on_impulse_event(self, step_size):
         # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
 
-        self.pub.publish(self.joint_state_request)
+        # self.pub_joints.publish(self.joint_state_request)
         # print("Joint State Request ISAAC Published")
 
-        og.Controller.set(og.Controller.attribute("/World/Kuka_kr3_1/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
-        og.Controller.set(og.Controller.attribute("/World/Kuka_kr3_2/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
-        og.Controller.set(og.Controller.attribute("/World/Kuka_kr3_3/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
-        og.Controller.set(og.Controller.attribute("/World/Kuka_kr3_4/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
+        og.Controller.set(og.Controller.attribute("/World/Kuka_Multiple_Arms/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
+       
+
 
     # Move xbots in simulation (No collision detection)
     def sim_xbots_movement(self, step_size):
@@ -498,25 +516,35 @@ class MAPs(BaseSample):
         max_accel = 10.0 # m/s^2
         move_increment = step_size * max_speed 
 
+        reached_dest = [False] * self._number_shuttles  # Initialize list of reached destinations
+
         for shuttle_number in range(self._number_shuttles):
             prim = self.prim_dict["prim_{}".format(shuttle_number + 1)]
 
             current_pos = prim.GetAttribute('xformOp:translate').Get() 
 
-            print("current pos: ", current_pos)
-            print("target_x", self.targets_x[shuttle_number], "shuttle_number: ", shuttle_number + 1)
+            # print("current pos: ", current_pos)
+            # print("target_x", self.targets_x[shuttle_number], "shuttle_number: ", shuttle_number + 1)
+            if self.targets_x[shuttle_number] == current_pos[0] and self.targets_y[shuttle_number] == current_pos[1]:
+                reached_dest[shuttle_number] = True     
 
+            if all(reached_dest):
+                print("All shuttles have reached their destinations!")
+
+                return 
+
+                
             # Move shuttle up
             if (self.targets_y[shuttle_number]) > current_pos[1]:
                 prim.GetAttribute('xformOp:translate').Set((current_pos) + (0.0, move_increment, 0.0))
                 if (current_pos[1] + move_increment) > self.targets_y[shuttle_number]:
-                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))               
                 continue
             # Move shuttle down
             elif (self.targets_y[shuttle_number]) < current_pos[1]:
                 prim.GetAttribute('xformOp:translate').Set((current_pos) - (0.0, move_increment, 0.0))
                 if (current_pos[1] - move_increment) < self.targets_y[shuttle_number]:
-                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2])) 
                 continue
 
             # #current_pos = prim.GetAttribute('xformOp:translate').Get()
@@ -533,6 +561,10 @@ class MAPs(BaseSample):
                 if (current_pos[0] - move_increment) < self.targets_x[shuttle_number]:
                     prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
                 continue
+
+
+
+        
 
     # Move xbots in simulation (Checking other shuttles in the path)
     def sim_xbots_movement_2(self, step_size):

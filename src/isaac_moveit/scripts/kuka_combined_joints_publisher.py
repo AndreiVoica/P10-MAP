@@ -17,11 +17,10 @@ import geometry_msgs.msg
 
 from math import pi, tau, dist, fabs, cos
 
-
-from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 
 from sensor_msgs.msg import JointState
+from std_msgs.msg import String
 
 
 
@@ -41,42 +40,38 @@ class kuka_combined_joints_publisher:
 
         self.scene = moveit_commander.PlanningSceneInterface()
 
-        self.group_name = "arm"
-        self.move_group = moveit_commander.MoveGroupCommander(self.group_name, ns = "kr3_1")
+        # Default group name
+        self.group_name = "KUKA3_arm"
+        self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
         
 
-        # self.display_trajectory_publisher = rospy.Publisher(
-        #     "/move_group/display_planned_path",
-        #     moveit_msgs.msg.DisplayTrajectory,
-        #     queue_size=20,
-        # )
+        self.display_trajectory_publisher = rospy.Publisher(
+            "/move_group/display_planned_path",
+            moveit_msgs.msg.DisplayTrajectory,
+            queue_size=20,
+        )
 
 
-        rospy.init_node("/kuka_combined_joints_publisher")
-        #self.pub = rospy.Publisher("/joint_command", JointState, queue_size=1)
+        rospy.init_node("kuka_combined_joints_publisher")
 
-        self.namespace = rospy.get_namespace()
-
-        rospy.loginfo(self.namespace)
-
-        self.pub1 = rospy.Publisher(self.namespace + "/joint_command", JointState, queue_size=1)
-        # self.pub2 = rospy.Publisher("/kr3_2/joint_command", JointState, queue_size=1)
-
-        # self.pub = rospy.Publisher("/kr3_1/joint_command", JointState, queue_size=1)
-
+        self.pub = rospy.Publisher("/joint_command", JointState, queue_size=1)
 
         # Control from Rviz
-        rospy.Subscriber(self.namespace + "/joint_command_desired", JointState, self.joint_states_callback, queue_size=1)
-        #rospy.Subscriber("/kr3_2/joint_command_desired", JointState, self.joint_states_callback, queue_size=1)
-        # # Control each robot from Isaac
+        rospy.Subscriber("/joint_command_desired", JointState, self.joint_states_callback, queue_size=1)
+        # Control each robot from Isaac
+        rospy.Subscriber("/joint_move_group_isaac", String, self.select_move_group, queue_size=1)
+        # rospy.Subscriber("/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
+    
+    def select_move_group(self, message):
+
+        self.group_name = message.data
+        self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
+        rospy.loginfo("Selected move group: %s", self.group_name)
+        rospy.Subscriber("/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
+
+        return
 
 
-        rospy.Subscriber(self.namespace + "/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
-        # rospy.Subscriber("/kr3_2/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
-        # rospy.Subscriber("/kr3_3/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
-        # rospy.Subscriber("/kr3_4/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
-        # rospy.Subscriber("/kr4_5/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
-        
     def joint_states_callback(self, message):
 
         joint_commands = JointState()
@@ -134,8 +129,7 @@ class kuka_combined_joints_publisher:
 
 
         # Publishing combined message containing all arm and finger joints
-        self.pub1.publish(joint_commands)
-        # self.pub2.publish(joint_commands)
+        self.pub.publish(joint_commands)
 
         current_joints = self.move_group.get_current_joint_values()
 
