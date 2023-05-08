@@ -22,18 +22,18 @@
   <!-- box shaped table as base for kukas -->
   <link name="base">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0.5"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="1 2 1"/>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/TableNoDetail.stl" scale="0.001 0.001 0.001"/>
       </geometry>
-      <material name="White">
-        <color rgba="1.0 1.0 1.0 1.0"/>
+      <material name="">
+        <color rgba="1 1 1 1"/>
       </material>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0.5"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
-        <box size="1 2 1"/>
+        <mesh filename="package://kuka_kr3_support/meshes/kr3r540/visual/TableNoDetail.stl" scale="0.001 0.001 0.001"/>
       </geometry>
     </collision>
     <inertial>
@@ -252,7 +252,7 @@
   <!-- ROS base_link to KUKA $ROBROOT coordinate system transform -->
   <!-- <link name="${prefix}base" /> -->
   <joint name="kr3_1__joint_base" type="fixed">
-    <origin rpy="0 0 0" xyz="0 -0.5 1"/>
+    <origin rpy="0 0 1.5707963267948966" xyz="0.171 -1.16645 0"/>
     <parent link="base"/>
     <child link="kr3_1_base_link"/>
   </joint>
@@ -553,7 +553,7 @@
   <!-- ROS base_link to KUKA $ROBROOT coordinate system transform -->
   <!-- <link name="${prefix}base" /> -->
   <joint name="kr3_2__joint_base" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0.5 1"/>
+    <origin rpy="0 0 1.5707963267948966" xyz="0.729 -1.16645 0"/>
     <parent link="base"/>
     <child link="kr3_2_base_link"/>
   </joint>
@@ -854,7 +854,7 @@
   <!-- ROS base_link to KUKA $ROBROOT coordinate system transform -->
   <!-- <link name="${prefix}base" /> -->
   <joint name="kr3_3__joint_base" type="fixed">
-    <origin rpy="0 0 -3.141592653589793" xyz="1.9 -0.5 1"/>
+    <origin rpy="0 0 -1.5707963267948966" xyz="0.171 -0.20714 0"/>
     <parent link="base"/>
     <child link="kr3_3_base_link"/>
   </joint>
@@ -1097,7 +1097,7 @@
   <!-- ROS base_link to KUKA $ROBROOT coordinate system transform -->
   <!-- <link name="${prefix}base" /> -->
   <joint name="kr3_4__joint_base" type="fixed">
-    <origin rpy="0 0 -3.141592653589793" xyz="1.9 0.5 1"/>
+    <origin rpy="0 0 -1.5707963267948966" xyz="0.729 -0.20714 0"/>
     <parent link="base"/>
     <child link="kr3_4_base_link"/>
   </joint>
@@ -1339,7 +1339,7 @@
     <origin rpy="0 1.5707963267948966 0" xyz="0 0 0"/>
   </joint>
   <joint name="kr4_5__joint_base" type="fixed">
-    <origin rpy="0 0 -3.141592653589793" xyz="1.9 -1.5 1"/>
+    <origin rpy="0 0 -1.5707963267948966" xyz="1.37418 -0.20714 0"/>
     <parent link="base"/>
     <child link="kr4_5_base_link"/>
   </joint>

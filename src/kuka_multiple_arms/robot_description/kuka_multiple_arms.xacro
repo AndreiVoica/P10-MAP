@@ -28,20 +28,28 @@
     <!-- box shaped table as base for kukas -->  
     <link name="base">
         <visual>
-            <origin xyz="0 0 0.5" rpy="0 0 0" />
-            <geometry>
-                <box size="1 2 1" />
-            </geometry>
-            <material name="White">
-                <color rgba="1.0 1.0 1.0 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin xyz="0 0 0.5" rpy="0 0 0" />
-            <geometry>
-                <box size="1 2 1" />
-            </geometry>
-        </collision>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0"/>
+        <geometry>
+          <mesh scale="0.001 0.001 0.001"
+            filename="package://kuka_kr3_support/meshes/kr3r540/visual/TableNoDetail.stl"/>   
+        </geometry>
+        <material
+          name="">
+          <color
+            rgba="1 1 1 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin
+          xyz="0 0 0"
+          rpy="0 0 0"/>
+        <geometry>
+          <mesh scale="0.001 0.001 0.001"
+            filename="package://kuka_kr3_support/meshes/kr3r540/visual/TableNoDetail.stl"/>
+        </geometry>
+      </collision>
         <inertial>
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
             <mass value="10.0"/>
@@ -58,23 +66,23 @@
 
 
     <!-- ROBOT 1 with gripper -->
-    <xacro:kuka_kr3r540 prefix="$(arg arm_id_1)" connected_to="base"  xyz="0 -0.5 1"  rpy="0 0 0"/>
+    <xacro:kuka_kr3r540 prefix="$(arg arm_id_1)" connected_to="base"  xyz="0.171 -1.16645 0"  rpy="0 0 ${pi/2}"/>
     <xacro:schunk_25nnb prefix="$(arg arm_id_1)$(arg hand_id_1)"  rpy="0 0 ${-pi/2}" connected_to="$(arg arm_id_1)tool0" />
 
     <!-- ROBOT 2 with gripper -->
-    <xacro:kuka_kr3r540 prefix="$(arg arm_id_2)" connected_to="base"  xyz="0 0.5 1" rpy="0 0 0" />
+    <xacro:kuka_kr3r540 prefix="$(arg arm_id_2)" connected_to="base"  xyz="0.729 -1.16645 0" rpy="0 0 ${pi/2}" />
     <xacro:schunk_25nnb prefix="$(arg arm_id_2)$(arg hand_id_2)"  rpy="0 0 ${-pi/2}" connected_to="$(arg arm_id_2)tool0" />
 
     <!-- ROBOT 3 with gripper -->
-    <xacro:kuka_kr3r540 prefix="$(arg arm_id_3)" connected_to="base"  xyz="1.9 -0.5 1"  rpy="0 0 ${-pi}"/>
+    <xacro:kuka_kr3r540 prefix="$(arg arm_id_3)" connected_to="base"  xyz="0.171 -0.20714 0"  rpy="0 0 ${-pi/2}"/>
     <xacro:pipette prefix="$(arg arm_id_3)$(arg hand_id_3)"  rpy="0 ${pi} ${-pi/2}" connected_to="$(arg arm_id_3)tool0" />
 
     <!-- ROBOT 4 with gripper -->
-    <xacro:kuka_kr3r540 prefix="$(arg arm_id_4)" connected_to="base"  xyz="1.9 0.5 1"  rpy="0 0 ${-pi}"/>
+    <xacro:kuka_kr3r540 prefix="$(arg arm_id_4)" connected_to="base"  xyz="0.729 -0.20714 0"  rpy="0 0 ${-pi/2}"/>
     <xacro:dispenser prefix="$(arg arm_id_4)$(arg hand_id_4)"  rpy="0 ${pi} ${-pi/2}" connected_to="$(arg arm_id_4)tool0" />
 
     <!-- ROBOT 5 with gripper -->
-    <xacro:kuka_kr4r600 prefix="$(arg arm_id_5)" connected_to="base"  xyz="1.9 -1.5 1"  rpy="0 0 ${-pi}"/>
+    <xacro:kuka_kr4r600 prefix="$(arg arm_id_5)" connected_to="base"  xyz="1.37418 -0.20714 0"  rpy="0 0 ${-pi/2}"/>
     <xacro:schunk_25nnb prefix="$(arg arm_id_5)$(arg hand_id_5)"  rpy="0 0 ${-pi/2}" connected_to="$(arg arm_id_5)tool0" />
 
 </robot>
