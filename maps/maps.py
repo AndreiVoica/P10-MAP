@@ -34,8 +34,8 @@ from omni.isaac.core.utils.prims import set_targets
 import asyncio
 import rospy
 from sensor_msgs.msg import JointState
-from std_msgs.msg import String
-from geometry_msgs.msg import Pose
+from std_msgs.msg import String, Header
+from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
 from math import tau
 
 import sys
@@ -180,8 +180,7 @@ class MAPs(BaseSample):
 
         self.current_pos_dict = {} # Dictionary to store shuttle current positions
 
-        self.move_group_name = String() # ROS topic name for move group
-
+        self.planning_group = String() # ROS topic name for move group
         self.joint_state_request = JointState()
         self.pose_request = Pose()  
         # self.joint_state_request.name = ["joint_a1", "joint_a2","joint_a3", "joint_a4", "joint_a5","joint_a6"]
@@ -204,10 +203,6 @@ class MAPs(BaseSample):
 
         # Add Xform reference for the shuttles
         world.scene.add(XFormPrim(prim_path="/World/LabSetup", name=f"LabSetup"))
-
-        # # Add Lab Setup Reference
-        # add_reference_to_stage(usd_path=self.asset_paths["lab_setup"], prim_path="/World/LabSetup")
-        # world.scene.add(GeometryPrim(prim_path="/World/LabSetup", name=f"lab_setup_ref_geom", collision=True))
 
         # Add Xform reference for the shuttles
         world.scene.add(XFormPrim(prim_path="/World/LabSetup/Grid", name=f"Grid"))
@@ -237,20 +232,7 @@ class MAPs(BaseSample):
             add_reference_to_stage(usd_path=self.asset_paths["tray_flask"], prim_path="/World/LabSetup/Grid/tray_beaker_{}".format(i+1))
             world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/tray_beaker_{}".format(i+1),
                                          name="tray_beaker_{}_ref_geom".format(i+1), collision=True))
-            
-        # # Add Xform reference for each station
-        # for i in range(len(self.station_info)):
 
-        #     # Add Robots references
-        #     add_reference_to_stage(usd_path=self.station_info[i+1]['asset'],
-        #                             prim_path="/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1)))
-
-            
-        #     world.scene.add(Articulation(prim_path ="/World/Kuka_{}_{}".format(self.station_info[i+1]['asset_name'], (i+1)),
-        #                                       name="Kuka_{}".format(i+1),
-        #                                       position = self.station_info[i+1]['position'],
-        #                                       orientation = self.station_info[i+1]['orientation']))
-            
         # Add Robots references
         add_reference_to_stage(usd_path=self.asset_paths["kuka_multiple"],
                                 prim_path="/World/Kuka_Multiple_Arms")
@@ -309,11 +291,8 @@ class MAPs(BaseSample):
         rospy.init_node('isaac_joint_request_publisher')
         self.pub_group = rospy.Publisher('/joint_move_group_isaac', String, queue_size=10)
         self.pub_joints = rospy.Publisher('/joint_command_isaac', JointState, queue_size=10)
-        # self.pub_pose = rospy.Publisher('/joint_command_isaac', Pose, queue_size=10)
-
-        self.move_group_name = 'KUKA2_arm'
-        self.joint_state_request.position = [0.6 , -1 , -tau/8 , -tau/4 , 0 , tau/6 ]
-
+        self.pub_pose = rospy.Publisher('/pose_command_isaac', Pose, queue_size=10)
+        self.pub_cartesian = rospy.Publisher('/cartesian_path_command_isaac', Pose, queue_size=10)
 
         # Creating a action graph with ROS component nodes
         try:
@@ -439,13 +418,13 @@ class MAPs(BaseSample):
         self._tray_vial_ref_geom.set_world_pose(position= self._tray_vial_position + (0, 0, 0.015 * (tray_vial_number)))
         self._tray_vial_ref_geom.set_default_state(position=self._tray_vial_position)
         self._tray_vial_ref_geom.set_collision_approximation("none")
-
     async def _add_tray_beaker(self, tray_beaker_number):
         self._tray_beaker_ref_geom = self._world.scene.get_object(f"tray_beaker_{tray_beaker_number+1}_ref_geom")
         self._tray_beaker_ref_geom.set_local_scale(np.array([self._tray_beaker_scale]))
         self._tray_beaker_ref_geom.set_world_pose(position= self._tray_beaker_position + (0, 0, 0.021 * (tray_beaker_number)))
         self._tray_beaker_ref_geom.set_default_state(position=self._tray_beaker_position)
         self._tray_beaker_ref_geom.set_collision_approximation("none")
+
 
     ## Interface Functions:
     async def _on_sim_control_event_async(self):
@@ -464,25 +443,55 @@ class MAPs(BaseSample):
         await world.play_async()
         return
     
+
+    # Function to move selected robot to desired joints position   
+    def move_to_joint_state(self, planning_group, joint_state_request):
+        self.planning_group = planning_group
+        self.joint_state_request.position = joint_state_request
+        self.pub_group.publish(self.planning_group)
+        self.pub_joints.publish(self.joint_state_request)
+        return
+    
+    # NOT WORKING YET
+    def move_to_pose(self, planning_group, position, orientation):
+        self.planning_group = planning_group
+        pose_request = self.create_pose_msg(position, orientation)
+        self.pub_group.publish(self.planning_group)
+        self.pub_pose.publish(pose_request)
+        return   
+
     async def _on_start_experiment_event_async(self):
         world = self.get_world()
 
-        # Publish Joints for the robot
-        # self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
-
-        # self.on_impulse_event()
-        # self.joint_state_request.position = [0 , -1 , -tau/2 , -tau/4 , 0 , tau/6 ]
-        
-        # Send shuttles to target
-        self.targets_x, self.targets_y = ([0.06, 0.30],[0.66, 0.18]) #([x1, x2],[y1, y2])
+        # world.remove_physics_callback("sim_step")
         world.add_physics_callback("sim_step", self.sim_xbots_movement)
 
-        self.joint_state_request.position = [0.6 , -1 , -tau/8 , -tau/4 , 0 , tau/6 ]
+        # Send shuttles to target
+        self.targets_x, self.targets_y = ([0.06, 0.42],[0.06, 0.18]) #([x1, x2],[y1, y2])
 
-        self.pub_group.publish(self.move_group_name)
-        self.pub_joints.publish(self.joint_state_request)
+        self.move_to_joint_state(planning_group="KUKA4_arm", 
+                                 joint_state_request=[random.uniform(-2, 2), 0.4, 0.3, 0, 0.707, 0.707])
+
+        self.move_to_joint_state(planning_group="KUKA2_arm", 
+                                 joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
+
+        # self.planning_group = 'KUKA2_arm'
+        # # position = [0.6 , random.uniform(0.4, 0.7) , 0.3]
+        # orientation = [0 , 0 , 0.707 , 0.707]
+
+        # self.move_to_pose(self.planning_group, position, orientation)
+
+
+        # self.pub_cartesian.publish(self.pose_request)
+
+        ## TBD USE CARTESIAN PATH
 
         return
+
+    def on_impulse_event(self, step_size):
+        # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
+        og.Controller.set(og.Controller.attribute("/World/Kuka_Multiple_Arms/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
+
 
     async def setup_pre_reset(self):
         # world = self.get_world()
@@ -496,17 +505,6 @@ class MAPs(BaseSample):
 
     def world_cleanup(self):
         return
-    
-
-
-    def on_impulse_event(self, step_size):
-        # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
-
-        # self.pub_joints.publish(self.joint_state_request)
-        # print("Joint State Request ISAAC Published")
-
-        og.Controller.set(og.Controller.attribute("/World/Kuka_Multiple_Arms/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
-       
 
 
     # Move xbots in simulation (No collision detection)
@@ -563,8 +561,6 @@ class MAPs(BaseSample):
                 continue
 
 
-
-        
 
     # Move xbots in simulation (Checking other shuttles in the path)
     def sim_xbots_movement_2(self, step_size):
@@ -753,7 +749,6 @@ class MAPs(BaseSample):
         #                              max_speed=3.0, max_accel=max_accel)
 
 
-
     def wait_for_xbot_done(xid):
         while bot.get_xbot_status(xbot_id=xid).xbot_state is not pmc_types.XbotState.XBOT_IDLE:
             time.sleep(0.5)
@@ -775,3 +770,32 @@ class MAPs(BaseSample):
 
         # Activate xBots
         bot.activate_xbots()
+
+
+    def create_pose_msg(self, position, orientation, frame_id=''):
+        # Create a new Pose object
+        pose = Pose()
+
+        # Given a position and orientation as lists and a frame id as string, return a PoseStamped message object.
+        header = Header()
+        header.frame_id = frame_id
+        header.stamp = rospy.Time.now()
+
+        # Set the position field of the Pose object
+        position_obj = Point()
+        position_obj.x = position[0]
+        position_obj.y = position[1]
+        position_obj.z = position[2]
+        pose.position = position_obj
+
+        # Set the orientation field of the Pose object
+        orientation_obj = Quaternion()
+        orientation_obj.x = orientation[0]
+        orientation_obj.y = orientation[1]
+        orientation_obj.z = orientation[2]
+        orientation_obj.w = orientation[3]
+        pose.orientation = orientation_obj
+
+        pose_stamped = PoseStamped(header=header, pose=pose)
+
+        return pose
