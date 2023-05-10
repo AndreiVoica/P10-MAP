@@ -1,4 +1,4 @@
-KUKA1_arm_controller:
+  KUKA1_arm_controller:
   type: effort_controllers/JointTrajectoryController
   joints:
     - kr3_1_joint_a1
