@@ -10,6 +10,7 @@
 
 import sys
 import copy
+import time
 import rospy
 import moveit_commander
 import moveit_msgs.msg
@@ -24,6 +25,8 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import String
 
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
+
+# import dynamic_reconfigure.client
 
 
 
@@ -41,13 +44,17 @@ class kuka_combined_joints_publisher:
         moveit_commander.roscpp_initialize(sys.argv)
 
         self.robot = moveit_commander.RobotCommander()
+        self.robot_joints = self.robot.get_joint_names()
+
+
 
         self.scene = moveit_commander.PlanningSceneInterface()
 
         # Default group name
         self.group_name = "KUKA3_arm"
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
-        #self.move_group.allow_replanning(True)
+        self.eef_link = self.move_group.get_end_effector_link()
+        self.move_group.allow_replanning(True)
         
 
         self.display_trajectory_publisher = rospy.Publisher(
@@ -56,19 +63,29 @@ class kuka_combined_joints_publisher:
             queue_size=20,
         )
 
+        # # IP reconfiguration TEST
+        # rospy.init_node('dynamic_reconfigurator', anonymous=True)
+        # self.client = dynamic_reconfigure.client.Client("/move_group")
 
+        # Initialize ROS node
         rospy.init_node("kuka_combined_joints_publisher")
 
+        # Publisher for joint commands
         self.pub = rospy.Publisher("/joint_command", JointState, queue_size=1)
 
         # Control from Rviz
         rospy.Subscriber("/joint_command_desired", JointState, self.joint_states_callback, queue_size=1)
+        
         # Control each robot from Isaac (1st select group, then get joint states)
         rospy.Subscriber("/joint_move_group_isaac", String, self.select_move_group, queue_size=1)
-        #rospy.Subscriber("/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
-
+        rospy.Subscriber("/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
+        rospy.Subscriber("/pose_command_isaac", Pose, self.go_to_pose_callback_isaac, queue_size=1)
+        rospy.Subscriber("/cartesian_path_command_isaac", Pose, self.go_to_cartesian_path_callback_isaac, queue_size=1)
+      
     # Rviz Control
     def joint_states_callback(self, message):
+
+        rospy.loginfo("Rviz message: %s", message)
 
         joint_commands = JointState()
 
@@ -91,19 +108,68 @@ class kuka_combined_joints_publisher:
         # Publishing combined message containing all arm and finger joints
         self.pub.publish(joint_commands)
 
+        rospy.loginfo("joint commands Rviz: %s", joint_commands)
+
         return
       
     def select_move_group(self, message):
 
+        rospy.loginfo("Robot joints: %s", self.robot_joints)
+
         self.group_name = message.data
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
+        self.eef_link = self.move_group.get_end_effector_link()
+        # params = { 'Robot_IP' : '192.168.1.1'}
+        # config = self.client.update_configuration(params)
+
         rospy.loginfo("Selected move group: %s", self.group_name)
 
-        rospy.Subscriber("/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
-        rospy.Subscriber("/pose_command_isaac", Pose, self.go_to_pose_callback_isaac, queue_size=1)
-        rospy.Subscriber("/cartesian_path_command_isaac", Pose, self.go_to_cartesian_path_callback_isaac, queue_size=1)
         return
 
+
+    def go_to_joint_states_callback_isaac(self, message):
+
+        rospy.loginfo("Message topic: %s", message)
+        
+        # Get current joint positions
+        joint_goal = self.move_group.get_current_joint_values()
+
+        rospy.loginfo("Joint goal1: %s", joint_goal)
+
+        # Get requested joint positions
+        joint_goal = message.position
+
+        rospy.loginfo("Joint goal2: %s", joint_goal)
+
+        # Go to requested joint positions
+        self.move_group.go(joint_goal, wait=True)
+
+        rospy.loginfo("Joint goal3: %s", joint_goal)
+        # self.move_group.stop()
+
+        # for i, name in enumerate(message.name):
+
+        #     # Storing arm joint names and positions
+        #     self.joints_dict[name] = joint_goal[i]
+
+        # rospy.loginfo("Joint joints dict: %s", self.joints_dict)
+
+        # # Creating joint command message
+        # joint_commands = JointState()
+        # joint_commands.header = message.header
+        # joint_commands.name = self.joints_dict.keys()
+        # joint_commands.position = self.joints_dict.values()
+
+        # # Publishing combined message containing all arm and finger joints
+        # self.pub.publish(joint_commands)
+
+        # Clearing joint dictionary
+        #self.joints_dict = {}
+
+        # Variable to test if joint positions are within tolerance
+        current_joints = self.move_group.get_current_joint_values()
+
+        return self.all_close(joint_goal, current_joints, 0.01)
 
     def go_to_cartesian_path_callback_isaac(self, message):
 
@@ -149,48 +215,13 @@ class kuka_combined_joints_publisher:
         # Publishing combined message containing all arm and finger joints
         self.pub.publish(joint_commands)
 
-        return
-
-    def go_to_joint_states_callback_isaac(self, message):
-
-        # Get current joint positions
-        joint_goal = self.move_group.get_current_joint_values()
-
-        # Get requested joint positions
-        joint_goal = message.position
-
-        # Go to requested joint positions
-        self.move_group.go(joint_goal, wait=True)
-        # self.move_group.stop()
-
-        for i, name in enumerate(message.name):
-
-            # Storing arm joint names and positions
-            self.joints_dict[name] = joint_goal[i]
-
-        # Creating joint command message
-        joint_commands = JointState()
-        joint_commands.header = message.header
-        joint_commands.name = self.joints_dict.keys()
-        joint_commands.position = self.joints_dict.values()
-
-        # Publishing combined message containing all arm and finger joints
-        self.pub.publish(joint_commands)
-
-        # Clearing joint dictionary
-        #self.joints_dict = {}
-
-        # Variable to test if joint positions are within tolerance
-        current_joints = self.move_group.get_current_joint_values()
-
-        return self.all_close(joint_goal, current_joints, 0.01)
-    
+        return 
 
     def go_to_pose_callback_isaac(self, message):
         # NOT WORKING YET
         # Get current joint positions
-        joint_commands = JointState()
-        joint_commands.name = self.move_group.get_active_joints() 
+        # joint_commands = JointState()
+        # joint_commands.name = self.move_group.get_active_joints() 
 
         target_pose = Pose()
 
@@ -200,38 +231,37 @@ class kuka_combined_joints_publisher:
         q = quaternion_from_euler(0.0, 0.0, 0.0)  # roll, pitch, yaw
         target_pose.orientation = Quaternion(*q)
 
-        self.move_group.set_pose_target(target_pose, end_effector_link="kr3_2_link_6")
-        self.move_group.go(wait=True)
+        self.move_group.set_pose_target(target_pose, self.eef_link)
+
+        # self.move_group.go(wait=True)
+        self.move_group.go(target_pose, wait=True)
 
         # self.move_group.stop()
-        pose_goal = self.move_group.get_current_joint_values()
+        # pose_goal = self.move_group.get_current_joint_values()
 
 
-        for i, name in enumerate(joint_commands.name):
+        # for i, name in enumerate(pose_goal.name):
 
-            # Storing arm joint names and positions
-            self.joints_dict[name] = pose_goal[i]
+        #     # Storing arm joint names and positions
+        #     self.joints_dict[name] = pose_goal[i]
 
-            # if name == "joint_left":
+        #     # if name == "joint_left":
 
-            #     # Adding additional panda_finger_joint2 state info (extra joint used in isaac sim)
-            #     # panda_finger_joint2 mirrors panda_finger_joint1
-            #     joints_dict["joint_right"] = message.position[i]
-
-
+        #     #     # Adding additional panda_finger_joint2 state info (extra joint used in isaac sim)
+        #     #     # panda_finger_joint2 mirrors panda_finger_joint1
+        #     #     joints_dict["joint_right"] = message.position[i]
 
         # joint_commands.name = self.joints_dict.keys()
-        joint_commands.position = self.joints_dict.values()
+        # joint_commands.position = self.joints_dict.values()
 
-
-        # Publishing combined message containing all arm and finger joints
-        self.pub.publish(joint_commands)
+        # # Publishing combined message containing all arm and finger joints
+        # self.pub.publish(joint_commands)
 
         current_joints = self.move_group.get_current_joint_values()
 
         #self.joints_dict = {}
 
-        return self.all_close(self.pose_request, current_joints, 0.01)
+        return #self.all_close(target_pose, current_joints, 0.01)
 
 
     def all_close(self, goal, actual, tolerance):

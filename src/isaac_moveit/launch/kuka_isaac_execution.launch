@@ -21,6 +21,7 @@
     <arg name="info" value="true"/>
     <arg name="debug" value="$(arg debug)"/>
     <arg name="pipeline" value="$(arg pipeline)"  />
+
   </include>
 
   <!-- <arg name="rviz_command_args" value="-d $(find isaac_moveit)/rviz/isaac_moveit_config.rviz" /> -->

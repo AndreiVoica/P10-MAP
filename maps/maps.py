@@ -102,10 +102,10 @@ class MAPs(BaseSample):
 
         # Flyways:
         # DEFINE FLYWAYS MATRIX
-        self.flyways_matrix = [[1, 1, 1],
-                               [1, 1, 1],
-                               [1, 1, 1], 
-                               [1, 1, 1]]
+        self.flyways_matrix = np.array([[1, 1, 1],
+                                        [1, 1, 1],
+                                        [1, 1, 1], 
+                                        [1, 1, 1]])
         
         self._flyway_position = np.array([1.165, -0.92398, 0.99302])
         self._flyway_orientation = np.array([0, 0, 0, 1])
@@ -354,10 +354,10 @@ class MAPs(BaseSample):
             target_prim_paths=["/World/Kuka_Multiple_Arms"]
         )
 
-        
+        self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
+
         # Control Switch
         if self.control_switch == 0:
-            self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
             # self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
 
             # rospy.init_node('isaac_test', anonymous=True)
@@ -365,6 +365,8 @@ class MAPs(BaseSample):
             #self.on_impulse_event()
 
             self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
+            self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
+
 
             # self._world.add_physics_callback("sim_step_ros", callback_fn=self.ros_tests)
 
@@ -448,8 +450,8 @@ class MAPs(BaseSample):
     def move_to_joint_state(self, planning_group, joint_state_request):
         self.planning_group = planning_group
         self.joint_state_request.position = joint_state_request
-        self.pub_group.publish(self.planning_group)
         self.pub_joints.publish(self.joint_state_request)
+        self.pub_group.publish(self.planning_group)
         return
     
     # NOT WORKING YET
@@ -460,23 +462,59 @@ class MAPs(BaseSample):
         self.pub_pose.publish(pose_request)
         return   
 
-    async def _on_start_experiment_event_async(self):
-        world = self.get_world()
+    def move_shuttle_to_target(self, xbot_id, target_x, target_y):
+        # Check if the xbot_id exists in xbot_ids
+        if xbot_id in self.xbot_ids:
+            # Update the corresponding target_x and target_y values
+            self.targets_x[xbot_id - 1] = target_x
+            self.targets_y[xbot_id - 1] = target_y
+        else:
+            # If the xbot_id doesn't exist in xbot_ids, raise an exception
+            raise ValueError(f"xbot_id {xbot_id} not found in xbot_ids")
 
-        # world.remove_physics_callback("sim_step")
-        world.add_physics_callback("sim_step", self.sim_xbots_movement)
+    
+
+    async def _on_start_experiment_event_async(self):
 
         # Send shuttles to target
-        self.targets_x, self.targets_y = ([0.06, 0.42],[0.06, 0.18]) #([x1, x2],[y1, y2])
 
-        self.move_to_joint_state(planning_group="KUKA4_arm", 
-                                 joint_state_request=[random.uniform(-2, 2), 0.4, 0.3, 0, 0.707, 0.707])
+        # self.move_shuttle_to_target(1, 0.06, 0.42) # CHECK
 
-        self.move_to_joint_state(planning_group="KUKA2_arm", 
-                                 joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
 
-        # self.planning_group = 'KUKA2_arm'
-        # # position = [0.6 , random.uniform(0.4, 0.7) , 0.3]
+        # self.targets_x, self.targets_y = ([0.06, 0.42],[0.06, 0.18]) #([x1, x2],[y1, y2])
+
+        # self.move_to_joint_state(planning_group="KUKA4_arm", 
+        #                          joint_state_request=[random.uniform(-2, 2), 0.4, 0.3, 0, 0.707, 0.707])
+
+        # self.move_to_joint_state(planning_group="KUKA2_arm", 
+        #                          joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
+
+        # self.move_shuttle_to_target(1, 0.06, 0.42) # CHECK
+
+        self.planning_group = 'KUKA3_arm'
+        # offset = [-1.275, 1.04, 0.0]
+        # position = [-0.54, 0.30 , 0.25] 
+        # position = [position[i] - offset[i] for i in range(len(position))]
+        orientation = [0 , 0 , 0.707 , 0.707]
+
+        position_xy = self.matrix_to_coordinates(3,7, moveit_offset = False)
+
+        print("position_xy: ", position_xy)
+
+        self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) # CHECK
+
+        position_xy = self.matrix_to_coordinates(3,7, moveit_offset = True)
+
+        position = [position_xy[0], position_xy[1] , 0.25]
+        print("position_offset: ", position)
+        # position = [0.855, -0.140, 0.30]
+
+
+        self.move_to_pose(self.planning_group, position, orientation)
+
+
+        # self.planning_group = 'KUKA4_arm'
+        # position = [0.6, -0.6 , 0.18]
         # orientation = [0 , 0 , 0.707 , 0.707]
 
         # self.move_to_pose(self.planning_group, position, orientation)
@@ -526,8 +564,8 @@ class MAPs(BaseSample):
             if self.targets_x[shuttle_number] == current_pos[0] and self.targets_y[shuttle_number] == current_pos[1]:
                 reached_dest[shuttle_number] = True     
 
-            if all(reached_dest):
-                print("All shuttles have reached their destinations!")
+            # if all(reached_dest):
+            #     print("All shuttles have reached their destinations!")
 
                 return 
 
@@ -799,3 +837,32 @@ class MAPs(BaseSample):
         pose_stamped = PoseStamped(header=header, pose=pose)
 
         return pose
+
+    def matrix_to_coordinates(self, x_pos, y_pos, moveit_offset=False): #CHECK THIS FUNCTION
+        """
+        Description: Converts the matrix coordinates to the platform coordinates.
+        Origin of the matrix is at the bottom left corner (0,0)
+        Limits of the acopos matrix are (5,7)
+        Use moveit_offset to convert the coordinates to the moveit frame --> Robot arms EEF Poses.
+
+        """
+        lim_x = self.flyways_matrix.shape[1] * 2
+        lim_y = self.flyways_matrix.shape[0] * 2
+
+        # Moveit offset
+        offset = [1.275, -1.04, 0.0]
+
+        if moveit_offset:
+            x_pos = -(y_pos * 0.12 + 0.06) + offset[0]
+            y_pos = (x_pos * 0.12 + 0.06) + offset[1]
+        else:
+            x_pos = x_pos * 0.12 + 0.06
+            y_pos = y_pos * 0.12 + 0.06
+
+        if x_pos > (lim_x - 1):
+            raise ValueError("x_pos exceeds the size of the platform.")
+        if y_pos > (lim_y - 1):   
+            raise ValueError("y_pos exceeds the size of the platform.")
+        
+        return x_pos, y_pos
+
