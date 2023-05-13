@@ -454,7 +454,7 @@ class MAPs(BaseSample):
         self.pub_group.publish(self.planning_group)
         return
     
-    # NOT WORKING YET
+    # Function to move selected robot to desired pose 
     def move_to_pose(self, planning_group, position, orientation):
         self.planning_group = planning_group
         pose_request = self.create_pose_msg(position, orientation)
@@ -497,13 +497,13 @@ class MAPs(BaseSample):
         # position = [position[i] - offset[i] for i in range(len(position))]
         orientation = [0 , 0 , 0.707 , 0.707]
 
-        position_xy = self.matrix_to_coordinates(3,7, moveit_offset = False)
+        position_xy = self.platform_pos_to_coordinates(3,7, moveit_offset = False)
 
         print("position_xy: ", position_xy)
 
         self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) # CHECK
 
-        position_xy = self.matrix_to_coordinates(3,7, moveit_offset = True)
+        position_xy = self.platform_pos_to_coordinates(3,7, moveit_offset = True)
 
         position = [position_xy[0], position_xy[1] , 0.25]
         print("position_offset: ", position)
@@ -838,31 +838,37 @@ class MAPs(BaseSample):
 
         return pose
 
-    def matrix_to_coordinates(self, x_pos, y_pos, moveit_offset=False): #CHECK THIS FUNCTION
+    def platform_pos_to_coordinates(self, x_pos, y_pos, moveit_offset=False, robot_arm=None): 
         """
-        Description: Converts the matrix coordinates to the platform coordinates.
+        Description: Converts the acopos platform positions to the platform coordinates.
         Origin of the matrix is at the bottom left corner (0,0)
         Limits of the acopos matrix are (5,7)
         Use moveit_offset to convert the coordinates to the moveit frame --> Robot arms EEF Poses.
-
         """
+        ## TBD - Add robot end effector offsets
+
+        if robot_arm is None:
+            robot_arm = self.planning_group #if self.planning_group is not None else None
+
         lim_x = self.flyways_matrix.shape[1] * 2
         lim_y = self.flyways_matrix.shape[0] * 2
 
         # Moveit offset
         offset = [1.275, -1.04, 0.0]
 
+        eef_offset = [0.0, 0.0, 0.0]
+
         if moveit_offset:
-            x_pos = -(y_pos * 0.12 + 0.06) + offset[0]
-            y_pos = (x_pos * 0.12 + 0.06) + offset[1]
+            x_coord = -(y_pos * 0.12 + 0.06) + offset[0]
+            y_coord = (x_pos * 0.12 + 0.06) + offset[1]
         else:
-            x_pos = x_pos * 0.12 + 0.06
-            y_pos = y_pos * 0.12 + 0.06
+            x_coord = x_pos * 0.12 + 0.06
+            y_coord = y_pos * 0.12 + 0.06
 
         if x_pos > (lim_x - 1):
             raise ValueError("x_pos exceeds the size of the platform.")
         if y_pos > (lim_y - 1):   
             raise ValueError("y_pos exceeds the size of the platform.")
         
-        return x_pos, y_pos
+        return x_coord, y_coord
 

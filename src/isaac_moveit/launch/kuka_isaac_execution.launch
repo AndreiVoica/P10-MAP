@@ -24,6 +24,7 @@
 
   </include>
 
+
   <!-- <arg name="rviz_command_args" value="-d $(find isaac_moveit)/rviz/isaac_moveit_config.rviz" /> -->
   <arg name="rviz_command_args" value="-d $(find kuka_config_multiple)/launch/moveit.rviz" />
 
