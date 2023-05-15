@@ -67,11 +67,11 @@
 
     <!-- ROBOT 1 with gripper -->
     <xacro:kuka_kr3r540 prefix="$(arg arm_id_1)" connected_to="base"  xyz="0.171 -1.16645 0"  rpy="0 0 ${pi/2}"/>
-    <xacro:schunk_25nnb prefix="$(arg arm_id_1)$(arg hand_id_1)"  rpy="0 0 ${-pi/2}" connected_to="$(arg arm_id_1)tool0" />
+    <xacro:schunk_25nnb prefix="$(arg arm_id_1)$(arg hand_id_1)"  rpy="0 ${-pi/2} 0" connected_to="$(arg arm_id_1)tool0" />
 
     <!-- ROBOT 2 with gripper -->
     <xacro:kuka_kr3r540 prefix="$(arg arm_id_2)" connected_to="base"  xyz="0.729 -1.16645 0" rpy="0 0 ${pi/2}" />
-    <xacro:schunk_25nnb prefix="$(arg arm_id_2)$(arg hand_id_2)"  rpy="0 0 ${-pi/2}" connected_to="$(arg arm_id_2)tool0" />
+    <xacro:schunk_25nnb prefix="$(arg arm_id_2)$(arg hand_id_2)"  rpy="0 ${-pi/2} 0" connected_to="$(arg arm_id_2)tool0" />
 
     <!-- ROBOT 3 with gripper -->
     <xacro:kuka_kr3r540 prefix="$(arg arm_id_3)" connected_to="base"  xyz="0.171 -0.20714 0"  rpy="0 0 ${-pi/2}"/>
@@ -83,6 +83,6 @@
 
     <!-- ROBOT 5 with gripper -->
     <xacro:kuka_kr4r600 prefix="$(arg arm_id_5)" connected_to="base"  xyz="1.37418 -0.20714 0"  rpy="0 0 ${-pi/2}"/>
-    <xacro:schunk_25nnb prefix="$(arg arm_id_5)$(arg hand_id_5)"  rpy="0 0 ${-pi/2}" connected_to="$(arg arm_id_5)tool0" />
+    <xacro:schunk_25nnb prefix="$(arg arm_id_5)$(arg hand_id_5)"  rpy="0 ${-pi/2} 0" connected_to="$(arg arm_id_5)tool0" />
 
 </robot>
