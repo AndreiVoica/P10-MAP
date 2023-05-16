@@ -239,7 +239,7 @@
     <inertial>
       <origin
         xyz="-0.000798709905497759 0.0330041725900681 0.000181924965941612"
-        rpy="0 0 0" />
+        rpy="0 -1.5708 0" />
       <mass
         value="3.0843E-05" />
       <inertia
@@ -253,7 +253,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 -1.5708 0" />
       <geometry>
         <mesh
           filename="package://schunk_25nnb/meshes/base_link.STL" />
@@ -261,13 +261,13 @@
       <material
         name="">
         <color
-          rgba="1 0 0 1" />
+          rgba="1 1 1 1" />
       </material>
     </visual>
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="0 -1.5708 0" />
       <geometry>
         <mesh
           filename="package://schunk_25nnb/meshes/base_link.STL" />
@@ -279,7 +279,7 @@
     <inertial>
       <origin
         xyz="0.0054865 -0.0099792 0.0019878"
-        rpy="0 0 0" />
+        rpy="1.5708 -1.5708 0" />
       <mass
         value="9.1881E-07" />
       <inertia
@@ -293,7 +293,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.5708 -1.5708 0" />
       <geometry>
         <mesh
           filename="package://schunk_25nnb/meshes/left_link.STL" />
@@ -301,13 +301,13 @@
       <material
         name="">
         <color
-          rgba="1 0 0 1" />
+          rgba="1 1 1 1" />
       </material>
     </visual>
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.5708 -1.5708 0" />
       <geometry>
         <mesh
           filename="package://schunk_25nnb/meshes/left_link.STL" />
@@ -319,7 +319,7 @@
     type="prismatic">
     <origin
       xyz="0 -8.2944E-05 0.08056"
-      rpy="1.5708 0 3.1416" />
+      rpy="0 0 0" />
     <parent
       link="base_link_gripper" />
     <child
@@ -337,7 +337,7 @@
     <inertial>
       <origin
         xyz="0.0039401 -0.0099792 0.0021878"
-        rpy="0 0 0" />
+        rpy="1.5708 -1.5708 0" />
       <mass
         value="9.1881E-07" />
       <inertia
@@ -351,7 +351,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.5708 -1.5708 0" />
       <geometry>
         <mesh
           filename="package://schunk_25nnb/meshes/right_link.STL" />
@@ -365,7 +365,7 @@
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.5708 -1.5708 0" />
       <geometry>
         <mesh
           filename="package://schunk_25nnb/meshes/right_link.STL" />
@@ -377,7 +377,7 @@
     type="prismatic">
     <origin
       xyz="0 -8.2944E-05 0.08056"
-      rpy="1.5708 0 0" />
+      rpy="0 0 0" />
     <parent
       link="base_link_gripper" />
     <child
