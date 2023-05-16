@@ -8,33 +8,183 @@ default_acceleration_scaling_factor: 0.1
 # Specific joint properties can be changed with the keys [max_position, min_position, max_velocity, max_acceleration]
 # Joint limits can be turned off with [has_velocity_limits, has_acceleration_limits]
 joint_limits:
-  joint_a1:
+  kr3_1_joint_a1:
     has_velocity_limits: true
     max_velocity: 9.250245035569947
     has_acceleration_limits: false
     max_acceleration: 0
-  joint_a2:
+  kr3_1_joint_a2:
     has_velocity_limits: true
     max_velocity: 9.232791743050003
     has_acceleration_limits: false
     max_acceleration: 0
-  joint_a3:
+  kr3_1_joint_a3:
     has_velocity_limits: true
     max_velocity: 9.389871375729493
     has_acceleration_limits: false
     max_acceleration: 0
-  joint_a4:
+  kr3_1_joint_a4:
     has_velocity_limits: true
     max_velocity: 10.47197551196598
     has_acceleration_limits: false
     max_acceleration: 0
-  joint_a5:
+  kr3_1_joint_a5:
     has_velocity_limits: true
     max_velocity: 10.47197551196598
     has_acceleration_limits: false
     max_acceleration: 0
-  joint_a6:
+  kr3_1_joint_a6:
     has_velocity_limits: true
     max_velocity: 13.96263401595464
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_1_schunk_joint_left:
+    has_velocity_limits: true
+    max_velocity: 2.00001
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_1_schunk_joint_right:
+    has_velocity_limits: true
+    max_velocity: 2.00001
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_joint_a1:
+    has_velocity_limits: true
+    max_velocity: 9.250245035569947
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_joint_a2:
+    has_velocity_limits: true
+    max_velocity: 9.232791743050003
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_joint_a3:
+    has_velocity_limits: true
+    max_velocity: 9.389871375729493
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_joint_a4:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_joint_a5:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_joint_a6:
+    has_velocity_limits: true
+    max_velocity: 13.96263401595464
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_schunk_joint_left:
+    has_velocity_limits: true
+    max_velocity: 2.00001
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_2_schunk_joint_right:
+    has_velocity_limits: true
+    max_velocity: 2.00001
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_3_joint_a1:
+    has_velocity_limits: true
+    max_velocity: 9.250245035569947
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_3_joint_a2:
+    has_velocity_limits: true
+    max_velocity: 9.232791743050003
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_3_joint_a3:
+    has_velocity_limits: true
+    max_velocity: 9.389871375729493
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_3_joint_a4:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_3_joint_a5:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_3_joint_a6:
+    has_velocity_limits: true
+    max_velocity: 13.96263401595464
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_4_joint_a1:
+    has_velocity_limits: true
+    max_velocity: 9.250245035569947
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_4_joint_a2:
+    has_velocity_limits: true
+    max_velocity: 9.232791743050003
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_4_joint_a3:
+    has_velocity_limits: true
+    max_velocity: 9.389871375729493
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_4_joint_a4:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_4_joint_a5:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr3_4_joint_a6:
+    has_velocity_limits: true
+    max_velocity: 13.96263401595464
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_joint_a1:
+    has_velocity_limits: true
+    max_velocity: 9.250245035569947
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_joint_a2:
+    has_velocity_limits: true
+    max_velocity: 9.232791743050003
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_joint_a3:
+    has_velocity_limits: true
+    max_velocity: 9.389871375729493
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_joint_a4:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_joint_a5:
+    has_velocity_limits: true
+    max_velocity: 10.47197551196598
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_joint_a6:
+    has_velocity_limits: true
+    max_velocity: 13.96263401595464
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_schunk_joint_left:
+    has_velocity_limits: true
+    max_velocity: 2.00001
+    has_acceleration_limits: false
+    max_acceleration: 0
+  kr4_5_schunk_joint_right:
+    has_velocity_limits: true
+    max_velocity: 2.00001
     has_acceleration_limits: false
     max_acceleration: 0
