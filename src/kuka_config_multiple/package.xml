@@ -1,6 +1,6 @@
 <package>
 
-  <name>kuka_moveit_configuration</name>
+  <name>kuka_config_multiple</name>
   <version>0.3.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the kuka_multiple_arms with the MoveIt Motion Planning Framework

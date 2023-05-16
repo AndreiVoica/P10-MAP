@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.3)
-project(kuka_moveit_configuration)
+project(kuka_config_multiple)
 
 find_package(catkin REQUIRED)
 
