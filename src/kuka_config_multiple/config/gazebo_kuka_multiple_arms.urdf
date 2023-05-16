@@ -301,7 +301,7 @@
     <joint name="kr3_1_schunk_base_joint" type="fixed">
         <parent link="kr3_1_tool0" />
         <child link="kr3_1_schunk_base_link" />
-        <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0" />
+        <origin rpy="0 -1.5707963267948966 0" xyz="0 0 0" />
     </joint>
     <link name="kr3_1_schunk_base_link">
         <inertial>
@@ -348,7 +348,7 @@
         </collision>
     </link>
     <joint name="kr3_1_schunk_joint_left" type="prismatic">
-        <origin rpy="1.5708 0 -3.1416" xyz="0 -8.2944E-05 0.08056" />
+        <origin rpy="1.5708 0 0" xyz="0.076 -8.2944E-05 0" />
         <parent link="kr3_1_schunk_base_link" />
         <child link="kr3_1_schunk_left_link" />
         <axis xyz="1 0 0" />
@@ -377,7 +377,7 @@
         </collision>
     </link>
     <joint name="kr3_1_schunk_joint_right" type="prismatic">
-        <origin rpy="1.5708 0 0" xyz="0 -8.2944E-05 0.08056" />
+        <origin rpy="1.5708 0 0" xyz="0.076 -8.2944E-05 0" />
         <parent link="kr3_1_schunk_base_link" />
         <child link="kr3_1_schunk_right_link" />
         <axis xyz="1 0 0" />
@@ -637,7 +637,7 @@
     <joint name="kr3_2_schunk_base_joint" type="fixed">
         <parent link="kr3_2_tool0" />
         <child link="kr3_2_schunk_base_link" />
-        <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0" />
+        <origin rpy="0 -1.5707963267948966 0" xyz="0 0 0" />
     </joint>
     <link name="kr3_2_schunk_base_link">
         <inertial>
@@ -684,7 +684,7 @@
         </collision>
     </link>
     <joint name="kr3_2_schunk_joint_left" type="prismatic">
-        <origin rpy="1.5708 0 -3.1416" xyz="0 -8.2944E-05 0.08056" />
+        <origin rpy="1.5708 0 0" xyz="0.076 -8.2944E-05 0" />
         <parent link="kr3_2_schunk_base_link" />
         <child link="kr3_2_schunk_left_link" />
         <axis xyz="1 0 0" />
@@ -713,7 +713,7 @@
         </collision>
     </link>
     <joint name="kr3_2_schunk_joint_right" type="prismatic">
-        <origin rpy="1.5708 0 0" xyz="0 -8.2944E-05 0.08056" />
+        <origin rpy="1.5708 0 0" xyz="0.076 -8.2944E-05 0" />
         <parent link="kr3_2_schunk_base_link" />
         <child link="kr3_2_schunk_right_link" />
         <axis xyz="1 0 0" />
@@ -1528,7 +1528,7 @@
     <joint name="kr4_5_schunk_base_joint" type="fixed">
         <parent link="kr4_5_tool0" />
         <child link="kr4_5_schunk_base_link" />
-        <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0" />
+        <origin rpy="0 -1.5707963267948966 0" xyz="0 0 0" />
     </joint>
     <link name="kr4_5_schunk_base_link">
         <inertial>
@@ -1575,7 +1575,7 @@
         </collision>
     </link>
     <joint name="kr4_5_schunk_joint_left" type="prismatic">
-        <origin rpy="1.5708 0 -3.1416" xyz="0 -8.2944E-05 0.08056" />
+        <origin rpy="1.5708 0 0" xyz="0.076 -8.2944E-05 0" />
         <parent link="kr4_5_schunk_base_link" />
         <child link="kr4_5_schunk_left_link" />
         <axis xyz="1 0 0" />
@@ -1604,7 +1604,7 @@
         </collision>
     </link>
     <joint name="kr4_5_schunk_joint_right" type="prismatic">
-        <origin rpy="1.5708 0 0" xyz="0 -8.2944E-05 0.08056" />
+        <origin rpy="1.5708 0 0" xyz="0.076 -8.2944E-05 0" />
         <parent link="kr4_5_schunk_base_link" />
         <child link="kr4_5_schunk_right_link" />
         <axis xyz="1 0 0" />

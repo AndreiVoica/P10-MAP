@@ -127,7 +127,7 @@ planner_configs:
     sparse_delta_fraction: 0.25  # delta fraction for connection distance. This value represents the visibility range of sparse samples. default: 0.25
     dense_delta_fraction: 0.001  # delta fraction for interface detection. default: 0.001
     max_failures: 5000  # maximum consecutive failure limit. default: 5000
-KUKA1_arm:
+kr3_1_arm:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -155,7 +155,7 @@ KUKA1_arm:
     - SPARStwo
   projection_evaluator: joints(kr3_1_joint_a1,kr3_1_joint_a2)
   longest_valid_segment_fraction: 0.005
-KUKA1_hand:
+kr3_1_hand:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -183,7 +183,7 @@ KUKA1_hand:
     - SPARStwo
   projection_evaluator: joints(kr3_1_schunk_joint_left,kr3_1_schunk_joint_right)
   longest_valid_segment_fraction: 0.005
-KUKA2_arm:
+kr3_2_arm:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -211,7 +211,7 @@ KUKA2_arm:
     - SPARStwo
   projection_evaluator: joints(kr3_2_joint_a1,kr3_2_joint_a2)
   longest_valid_segment_fraction: 0.005
-KUKA2_hand:
+kr3_2_hand:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -239,7 +239,7 @@ KUKA2_hand:
     - SPARStwo
   projection_evaluator: joints(kr3_2_schunk_joint_left,kr3_2_schunk_joint_right)
   longest_valid_segment_fraction: 0.005
-KUKA3_arm:
+kr3_3_arm:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -267,7 +267,7 @@ KUKA3_arm:
     - SPARStwo
   projection_evaluator: joints(kr3_3_joint_a1,kr3_3_joint_a2)
   longest_valid_segment_fraction: 0.005
-KUKA3_hand:
+kr3_3_hand:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -293,7 +293,7 @@ KUKA3_hand:
     - LazyPRMstar
     - SPARS
     - SPARStwo
-KUKA4_arm:
+kr3_4_arm:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -321,7 +321,7 @@ KUKA4_arm:
     - SPARStwo
   projection_evaluator: joints(kr3_4_joint_a1,kr3_4_joint_a2)
   longest_valid_segment_fraction: 0.005
-KUKA4_hand:
+kr3_4_hand:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -347,7 +347,7 @@ KUKA4_hand:
     - LazyPRMstar
     - SPARS
     - SPARStwo
-KUKA5_arm:
+kr4_5_arm:
   planner_configs:
     - AnytimePathShortening
     - SBL
@@ -375,7 +375,7 @@ KUKA5_arm:
     - SPARStwo
   projection_evaluator: joints(kr4_5_joint_a1,kr4_5_joint_a2)
   longest_valid_segment_fraction: 0.005
-KUKA5_hand:
+kr4_5_hand:
   planner_configs:
     - AnytimePathShortening
     - SBL

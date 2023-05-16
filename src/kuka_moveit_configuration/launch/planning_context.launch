@@ -6,21 +6,21 @@
   <arg name="robot_description" default="robot_description"/>
 
   <!-- Load universal robot description format (URDF) -->
-  <param if="$(arg load_robot_description)" name="$(arg robot_description)" textfile="$(find kuka_multiple_arms)/robot_description/kuka_multiple_arms.urdf"/>
+  <param if="$(arg load_robot_description)" name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find kuka_kr3_support)/urdf/kr3r540.xacro'"/>
 
   <!-- The semantic description that corresponds to the URDF -->
-  <param name="$(arg robot_description)_semantic" textfile="$(find kuka_moveit_configuration)/config/kuka_multiple_arms.srdf" />
-
+  <param name="$(arg robot_description)_semantic" textfile="$(find kuka_moveit_configuration)/config/kuka_kr3r540.srdf" />
+  
   <!-- Load updated joint limits (override information from URDF) -->
   <group ns="$(arg robot_description)_planning">
     <rosparam command="load" file="$(find kuka_moveit_configuration)/config/joint_limits.yaml"/>
-    <rosparam command="load" file="$(find kuka_moveit_configuration)/config/cartesian_limits.yaml"/>
   </group>
 
   <!-- Load default settings for kinematics; these settings are overridden by settings in a node's namespace -->
   <group ns="$(arg robot_description)_kinematics">
+  <!-- Load universal robot description format (URDF) -->
+  <param if="$(arg load_robot_description)" name="$(arg robot_description)" command="$(find xacro)/xacro --inorder '$(find kuka_kr3_support)/urdf/kr3r540.xacro'"/>
     <rosparam command="load" file="$(find kuka_moveit_configuration)/config/kinematics.yaml"/>
-
   </group>
-
+  
 </launch>
