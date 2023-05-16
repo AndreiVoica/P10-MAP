@@ -11,7 +11,7 @@ from omni.isaac.core import World
 from omni.isaac.core.prims import GeometryPrim, XFormPrim
 import omni.kit.commands
 from pxr import Sdf, Gf, UsdPhysics
-from omni.isaac.core.utils.rotations import euler_angles_to_quat
+from omni.isaac.core.utils.rotations import euler_angles_to_quat, quat_to_euler_angles
 import numpy as np
 
 from omni.isaac.core.utils.stage import add_reference_to_stage
@@ -43,22 +43,10 @@ import sys
 # Action graph imports
 import omni.graph.core as og
 
-# import rosgraph
-#########################################################################################################
+import rosgraph
 
 
-# KUKA_STAGE_PATH = "/World/Kuka_kr3_1"
-# enable ROS bridge extension
-extensions.enable_extension("omni.isaac.ros_bridge")
 
-# check if rosmaster node is running
-# this is to prevent this sample from waiting indefinetly if roscore is not running
-# can be removed in regular usage
-
-# if not rosgraph.is_master_online():
-#     carb.log_error("Please run roscore before executing this script")
-
-#     exit()
 
 #########################################################################################################
 class MAPs(BaseSample):
@@ -106,10 +94,20 @@ class MAPs(BaseSample):
                                         [1, 1, 1],
                                         [1, 1, 1], 
                                         [1, 1, 1]])
-        
+            
+        # Flyway offsets    
         self._flyway_position = np.array([1.165, -0.92398, 0.99302])
         self._flyway_orientation = np.array([0, 0, 0, 1])
         self._flyway_scale = 0.01
+
+        # Grid for BFS Algorithm
+        self.grid = []
+        for row in self.flyways_matrix:
+            grid_row = []
+            for cell in row:
+                grid_row.extend([cell]*2)  # each cell in flyways_matrix is 2 cells in grid
+            for _ in range(2):  # each cell in flyways_matrix is 2 cells in grid
+                self.grid.append(grid_row)
 
         # Kuka Multiple Arms:
         self._kuka_arms_position = np.array([0.0, 0.0, 1.0])  # Gf.Vec3f(0.5, 0.0, 0.0)
@@ -125,7 +123,7 @@ class MAPs(BaseSample):
             #"kr3": self.asset_folder + "kr3r540/kr3r540_v4/kr3r540_v4.usd", # Schunk Kr3
             "kr3": self.asset_folder + "kr3r540_v4/kr3r540_v4g.usd", # Schunk Kr3
             "kr4": self.asset_folder + "kr4r600/kr4r600_v2.usd", 
-            "kuka_multiple": self.asset_folder + "kuka_multiple_arms/kuka_multiple_arms.usd",
+            "kuka_multiple": self.asset_folder + "kuka_multiple_arms/kuka_multiple_arms_2.usd",
             "franka": "omniverse://localhost/NVIDIA/Assets/Isaac/2022.2.1/Isaac/Robots/Franka/franka_alt_fingers.usd",
             "flyway": self.asset_folder + "flyways/flyway_segment.usd",
             # "shuttle": self.asset_folder + "120x120x10/acopos_shuttle_120.usd", # Basic shuttle
@@ -194,6 +192,11 @@ class MAPs(BaseSample):
     # Class variables should not be assigned here, since this function is not called
     # after a hot-reload, its only called to load the world starting from an EMPTY stage
     def setup_scene(self):
+
+        # Check if ROS master is running
+        if not rosgraph.is_master_online():
+            carb.log_error("Please run roscore before executing this script")
+
         # A world is defined in the BaseSample, can be accessed everywhere EXCEPT __init__
         world = self.get_world()
         world = World.instance()
@@ -365,7 +368,7 @@ class MAPs(BaseSample):
             #self.on_impulse_event()
 
             self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
-            self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
+            self._world.add_physics_callback("sim_step", self.sim_xbots_movement_4)
 
 
             # self._world.add_physics_callback("sim_step_ros", callback_fn=self.ros_tests)
@@ -490,18 +493,21 @@ class MAPs(BaseSample):
         #                          joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
 
         # self.move_shuttle_to_target(1, 0.06, 0.42) # CHECK
+        self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
 
         self.planning_group = 'KUKA3_arm'
         # offset = [-1.275, 1.04, 0.0]
         # position = [-0.54, 0.30 , 0.25] 
         # position = [position[i] - offset[i] for i in range(len(position))]
-        orientation = [0 , 0 , 0.707 , 0.707]
+        orientation = euler_angles_to_quat([0.0, 0.0, 0.0])  # roll, pitch, yaw
+        print("orientation: ", orientation)
+        # orientation = [0 , 0 , 0.707 , 0.707]
 
         position_xy = self.platform_pos_to_coordinates(3,7, moveit_offset = False)
 
         print("position_xy: ", position_xy)
 
-        self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) # CHECK
+        # self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
 
         position_xy = self.platform_pos_to_coordinates(3,7, moveit_offset = True)
 
@@ -599,25 +605,17 @@ class MAPs(BaseSample):
                 continue
 
 
-
     # Move xbots in simulation (Checking other shuttles in the path)
-    def sim_xbots_movement_2(self, step_size):
-
-        # og.Controller.set(og.Controller.attribute("/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
-
+    def sim_xbots_movement_3(self, step_size):
 
         max_speed = 1.0 # m/s
         move_increment = step_size * max_speed 
-
-
 
         for xbot in range(self._number_shuttles):
 
             prim = self.prim_dict["prim_{}".format(xbot + 1)]
 
             current_pos = prim.GetAttribute('xformOp:translate').Get()
- 
-            # FIRST DO IT HERE FOR EVERY SHUTTLE, AFTER JUST UPDATE THE UPDATED VALUE
 
             x_pos_control = []
             y_pos_control = []
@@ -626,63 +624,48 @@ class MAPs(BaseSample):
             for shuttle_number in range(self._number_shuttles):
                 prim_others = self.prim_dict["prim_{}".format(shuttle_number + 1)]
                 shuttles_pos = prim_others.GetAttribute('xformOp:translate').Get()
-                print("shuttles_pos: ", shuttles_pos)
                 x_pos_control.append(shuttles_pos[0])
                 y_pos_control.append(shuttles_pos[1])
 
-            print("x_pos_control: ", x_pos_control)
-            print("y_pos_control: ", y_pos_control)
-
-            # CHECK if condition
-            for shuttle in range(self._number_shuttles):
-                if xbot != shuttle and (current_pos[1] > (y_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[1] < (y_pos_control[shuttle] + 0.0602 + move_increment) and current_pos[0] > (x_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[0] < (x_pos_control[shuttle] + 0.0602 + move_increment)):                
-                    continue_flag = True
-                    print("continue_flag: ", continue_flag)
-            if continue_flag:
-                continue
-            
-            # WHEN THIS HAPPENS, BREAK THE OUTER LOOP -- TBD
-        
-            # Move shuttle right
-            if (self.targets_x[xbot]) > current_pos[0]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) + (move_increment, 0.0, 0.0))
-                if (current_pos[0] + move_increment) > self.targets_x[xbot]:
-                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[xbot], current_pos[1], current_pos[2]))
-                break
-            # Move shuttle left
-            elif (self.targets_x[xbot]) < current_pos[0]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) - (move_increment, 0.0 , 0.0))
-                if (current_pos[0] - move_increment) < self.targets_x[xbot]:
-                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[xbot], current_pos[1], current_pos[2]))
-                break
-
-            # for shuttle in range(self._number_shuttles):
-            #     if xbot != shuttle:
-            #         continue 
-            #     elif (current_pos[0] > (x_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[0] < (x_pos_control[shuttle] + 0.0602 + move_increment)):                   
-            #         break
+            # Decide which direction to move in
+            dx = self.targets_x[xbot] - current_pos[0]
+            dy = self.targets_y[xbot] - current_pos[1]
 
             for shuttle in range(self._number_shuttles):
-                if xbot != shuttle and (current_pos[0] > (x_pos_control[shuttle] - 0.0602 - move_increment) or current_pos[0] < (x_pos_control[shuttle] + 0.0602 + move_increment)):                   
+                continue_flag = False
+                if xbot != shuttle and ((current_pos[1] > (y_pos_control[shuttle] - 0.0602 - move_increment) and current_pos[1] < (y_pos_control[shuttle] + 0.0602 + move_increment)) or (current_pos[0] > (x_pos_control[shuttle] - 0.0602 - move_increment) and current_pos[0] < (x_pos_control[shuttle] + 0.0602 + move_increment))):                
                     continue_flag = True
-            if continue_flag:
-                continue
-                         
-            # Move shuttle up
-            if (self.targets_y[xbot]) > current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) + (0.0, move_increment, 0.0))
-                if (current_pos[1] + move_increment) > self.targets_y[xbot]:
-                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[xbot], current_pos[2]))
-                break
-            # Move shuttle down
-            elif (self.targets_y[xbot]) < current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) - (0.0, move_increment, 0.0))
-                if (current_pos[1] - move_increment) < self.targets_y[xbot]:
-                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[xbot], current_pos[2]))
-                break
-            
-            # #current_pos = prim.GetAttribute('xformOp:translate').Get()
+                
+                if continue_flag:
+                    continue
 
+                # if moving right is safe
+                if dx > 0:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos) + (move_increment, 0.0, 0.0))
+                    if (current_pos[0] + move_increment) > self.targets_x[xbot]:
+                        prim.GetAttribute('xformOp:translate').Set((self.targets_x[xbot], current_pos[1], current_pos[2]))
+                    break
+                # if moving left is safe
+                elif dx < 0:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos) - (move_increment, 0.0 , 0.0))
+                    if (current_pos[0] - move_increment) < self.targets_x[xbot]:
+                        prim.GetAttribute('xformOp:translate').Set((self.targets_x[xbot], current_pos[1], current_pos[2]))
+                    break
+                # if moving up is safe
+                if dy > 0:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], current_pos[1] + move_increment, current_pos[2]))
+                    if (current_pos[1] + move_increment) > self.targets_y[xbot]:
+                        prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[xbot], current_pos[2]))
+                    break
+                # if moving down is safe
+                elif dy < 0:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], current_pos[1] - move_increment, current_pos[2]))
+                    if (current_pos[1] - move_increment) < self.targets_y[xbot]:
+                        prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[xbot], current_pos[2]))
+                    break
+
+
+    
 
     # Read shuttles position and orientation from physical setup
     def read_xbots_positions(self, step_size):
@@ -872,3 +855,54 @@ class MAPs(BaseSample):
         
         return x_coord, y_coord
 
+
+    def sim_xbots_movement_bfs(self, step_size):
+        max_speed = 1.0 # m/s
+        move_increment = step_size * max_speed 
+
+        for xbot in range(self._number_shuttles):
+            prim = self.prim_dict["prim_{}".format(xbot + 1)]
+            current_pos = prim.GetAttribute('xformOp:translate').Get()
+
+            # Convert current_pos and target to grid coordinates
+            start = (int((current_pos[0] + 0.06)/0.12), len(self.grid) - 1 - int((current_pos[1] + 0.06)/0.12))  
+            end = (int((self.targets_x[xbot] + (0.06 if self.targets_x[xbot] % 0.12 != 0 else 0))/0.12), 
+                    len(self.grid) - 1 - int((self.targets_y[xbot] + (0.06 if self.targets_y[xbot] % 0.12 != 0 else 0))/0.12))
+
+            path = self.bfs(self.grid, start, end)
+
+            if path is not None and len(path) > 1:
+                next_step = path[1]  # Take the second step in the path (first is current position)
+                # Convert next_step from grid coordinates back to simulation's coordinates
+                next_step_sim = ((next_step[0]*0.12) + (0.06 if next_step[0] % 1 != 0 else 0), 
+                                ((len(self.grid) - 1 - next_step[1])*0.12) + (0.06 if (len(self.grid) - 1 - next_step[1]) % 1 != 0 else 0))
+                prim.GetAttribute('xformOp:translate').Set((next_step_sim[0], next_step_sim[1], current_pos[2]))
+                print("Moving xbot {} to {}".format(xbot + 1, next_step_sim))
+
+    # BFS algorithm
+    def bfs(self, grid, start, end):
+        queue = []
+        queue.append([start])  # Wrap the start tuple in a list
+        visited = set(start)  # Create a set to store visited nodes
+
+        while queue:
+            path = queue.pop(0)
+            node = path[-1]  # Get the last node in this path
+            if node == end:
+                return path
+
+            for direction in [(0, 1), (0, -1), (1, 0), (-1, 0)]:  # Right, Left, Down, Up
+                new_node = (node[0] + direction[0], node[1] + direction[1])
+
+                if (new_node[0] >= 0 and new_node[0] < len(grid) and  # Check grid boundaries
+                    new_node[1] >= 0 and new_node[1] < len(grid[0]) and
+                    grid[new_node[0]][new_node[1]] == 1 and  # Check if new_node is walkable
+                    new_node not in visited):  # Check if the node has not been visited
+
+                    new_path = list(path)
+                    new_path.append(new_node)
+                    queue.append(new_path)
+                    visited.add(new_node)  # Add the new node to the visited set
+
+        print("No valid path found.")
+        return None
