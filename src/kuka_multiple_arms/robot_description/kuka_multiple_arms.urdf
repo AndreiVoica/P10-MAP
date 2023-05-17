@@ -266,7 +266,7 @@
   <joint name="kr3_1_schunk_base_joint" type="fixed">
     <parent link="kr3_1_tool0"/>
     <child link="kr3_1_schunk_base_link"/>
-    <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0"/>
+    <origin rpy="0 -1.5707963267948966 0" xyz="0 0 0"/>
   </joint>
   <link name="kr3_1_schunk_base_link">
     <inertial>
@@ -567,7 +567,7 @@
   <joint name="kr3_2_schunk_base_joint" type="fixed">
     <parent link="kr3_2_tool0"/>
     <child link="kr3_2_schunk_base_link"/>
-    <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0"/>
+    <origin rpy="0 -1.5707963267948966 0" xyz="0 0 0"/>
   </joint>
   <link name="kr3_2_schunk_base_link">
     <inertial>
@@ -1353,7 +1353,7 @@
   <joint name="kr4_5_schunk_base_joint" type="fixed">
     <parent link="kr4_5_tool0"/>
     <child link="kr4_5_schunk_base_link"/>
-    <origin rpy="0 0 -1.5707963267948966" xyz="0 0 0"/>
+    <origin rpy="0 -1.5707963267948966 0" xyz="0 0 0"/>
   </joint>
   <link name="kr4_5_schunk_base_link">
     <inertial>
