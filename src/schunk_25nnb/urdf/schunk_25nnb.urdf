@@ -8,17 +8,17 @@
     name="base_link">
     <inertial>
       <origin
-        xyz="0.0332072546842129 0.000470034112707346 -0.00109299234976048"
+        xyz="-0.000798709905497759 0.0330041725900681 0.000181924965941612"
         rpy="0 0 0" />
       <mass
-        value="0.03199945156995" />
+        value="3.08428949350963E-05" />
       <inertia
-        ixx="2.6340948711181E-06"
-        ixy="-6.34796243387625E-09"
-        ixz="1.79619163453797E-09"
-        iyy="1.30867625733723E-05"
-        iyz="3.1167286357459E-10"
-        izz="1.21892803474127E-05" />
+        ixx="1.21752033814272E-08"
+        ixy="-1.76830031372158E-12"
+        ixz="3.1179861790657E-13"
+        iyy="2.61959369553983E-09"
+        iyz="6.34798469366256E-12"
+        izz="1.30729118706546E-08" />
     </inertial>
     <visual>
       <origin
@@ -31,7 +31,7 @@
       <material
         name="">
         <color
-          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+          rgba="1 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -44,79 +44,21 @@
       </geometry>
     </collision>
   </link>
-  <link
-    name="right_link">
-    <inertial>
-      <origin
-        xyz="0.051256 0.052457 0.00047325"
-        rpy="0 0 0" />
-      <mass
-        value="0.028333" />
-      <inertia
-        ixx="8.159E-06"
-        ixy="-1.0398E-05"
-        ixz="-5.3309E-09"
-        iyy="5.2271E-05"
-        iyz="-4.9924E-09"
-        izz="5.8885E-05" />
-    </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://schunk_25nnb/meshes/right_link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.79216 0.81961 0.93333 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://schunk_25nnb/meshes/right_link.STL" />
-      </geometry>
-    </collision>
-  </link>
-  <joint
-    name="joint_right"
-    type="prismatic">
-    <origin
-      xyz="0 0 0"
-      rpy="0 0 0" />
-    <parent
-      link="base_link" />
-    <child
-      link="right_link" />
-    <axis
-      xyz="0 1 0" />
-    <limit
-      lower="-0.003"
-      upper="0"
-      effort="40"
-      velocity="2" />
-  </joint>
   <link
     name="left_link">
     <inertial>
       <origin
-        xyz="0.051299 -0.053646 0.00083662"
+        xyz="0.0054865 -0.0099792 0.0019878"
         rpy="0 0 0" />
       <mass
-        value="0.028312" />
+        value="9.1881E-07" />
       <inertia
-        ixx="8.1587E-06"
-        ixy="1.0398E-05"
-        ixz="5.3309E-09"
-        iyy="5.2271E-05"
-        iyz="-4.9924E-09"
-        izz="5.8885E-05" />
+        ixx="2.3947E-11"
+        ixy="-1.4195E-11"
+        ixz="4.575E-12"
+        iyy="4.2053E-11"
+        iyz="4.362E-12"
+        izz="5.6785E-11" />
     </inertial>
     <visual>
       <origin
@@ -129,7 +71,7 @@
       <material
         name="">
         <color
-          rgba="0.79216 0.81961 0.93333 1" />
+          rgba="1 0 0 1" />
       </material>
     </visual>
     <collision>
@@ -146,18 +88,76 @@
     name="joint_left"
     type="prismatic">
     <origin
-      xyz="0 0 0"
-      rpy="0 0 0" />
+      xyz="0 -8.2944E-05 0.08056"
+      rpy="1.5708 0 -3.1416" />
     <parent
       link="base_link" />
     <child
       link="left_link" />
     <axis
-      xyz="0 1 0" />
+      xyz="1 0 0" />
     <limit
-      lower="-0.003"
-      upper="0"
-      effort="40"
+      lower="-0.0047"
+      upper="1E-05"
+      effort="20"
+      velocity="2" />
+  </joint>
+  <link
+    name="right_link">
+    <inertial>
+      <origin
+        xyz="0.0039401 -0.0099792 0.0021878"
+        rpy="0 0 0" />
+      <mass
+        value="9.1881E-07" />
+      <inertia
+        ixx="2.3947E-11"
+        ixy="-1.4195E-11"
+        ixz="4.575E-12"
+        iyy="4.2053E-11"
+        iyz="4.362E-12"
+        izz="5.6785E-11" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://schunk_25nnb/meshes/right_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0 0 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://schunk_25nnb/meshes/right_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_right"
+    type="prismatic">
+    <origin
+      xyz="0 -8.2944E-05 0.08056"
+      rpy="1.5708 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-0.0047"
+      upper="1E-05"
+      effort="20"
       velocity="2" />
   </joint>
 </robot>

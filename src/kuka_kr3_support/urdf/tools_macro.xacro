@@ -94,8 +94,8 @@
         name="${prefix}joint_left"
         type="prismatic">
         <origin
-          xyz="0.076 -8.2944E-05 0"
-          rpy="1.5708 0 0" />
+          xyz="0 -8.2944E-05 0.08056"
+          rpy="1.5708 0 -3.1416" />
         <parent
           link="${prefix}base_link" />
         <child
@@ -152,7 +152,7 @@
         name="${prefix}joint_right"
         type="prismatic">
         <origin
-          xyz="0.076 -8.2944E-05 0"
+          xyz="0 -8.2944E-05 0.08056"
           rpy="1.5708 0 0" />
         <parent
           link="${prefix}base_link" />
