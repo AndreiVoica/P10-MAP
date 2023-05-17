@@ -80,11 +80,12 @@ class MAPs(BaseSample):
         self.xbot_ids = [i for i in range(1, self._number_shuttles + 1)] 
 
         # Trays
-        self._number_tray_vial = 4
-        self._tray_vial_position = np.array([1.2277, -1.2, 1])
+        self._number_tray_vial = 1
+        self._tray_vial_position = np.array([1.2277, -0.9815, 1.085])
+        # self._tray_vial_position = np.array([1.2277, -1.2, 1])
         self._tray_vial_scale = 0.01
 
-        self._number_tray_beaker = 4
+        self._number_tray_beaker = 1
         self._tray_beaker_position = np.array([1.42, -1.2, 1])
         self._tray_beaker_scale = 0.01
 
@@ -123,13 +124,14 @@ class MAPs(BaseSample):
             #"kr3": self.asset_folder + "kr3r540/kr3r540_v4/kr3r540_v4.usd", # Schunk Kr3
             "kr3": self.asset_folder + "kr3r540_v4/kr3r540_v4g.usd", # Schunk Kr3
             "kr4": self.asset_folder + "kr4r600/kr4r600_v2.usd", 
-            "kuka_multiple": self.asset_folder + "kuka_multiple_arms/kuka_multiple_arms_2.usd",
+            "kuka_multiple": self.asset_folder + "kuka_multiple_arms/kuka_multiple_arms_4.usd",
             "franka": "omniverse://localhost/NVIDIA/Assets/Isaac/2022.2.1/Isaac/Robots/Franka/franka_alt_fingers.usd",
             "flyway": self.asset_folder + "flyways/flyway_segment.usd",
             # "shuttle": self.asset_folder + "120x120x10/acopos_shuttle_120.usd", # Basic shuttle
             "shuttle": self.asset_folder + "120x120x10/shuttle.usd",
             "tray_vial" : self.asset_folder + "Trays/Tray_vial.usd",
-            "tray_flask" : self.asset_folder + "Trays/Tray_flask.usd",
+            "tray_flask" : self.asset_folder + "Trays/Tray_beaker.usd",
+            "vial" : self.asset_folder + "vials/vial.usd",
             #"lab_setup": self.asset_folder + "Lab_setup_v2.usd" # Lab Setup with robots
             #"lab_setup": self.asset_folder + "Lab_setup_v1.usd"  # Lab Setup without robots
             "lab_setup": self.asset_folder + "Lab_setup_v0.usd" # Lab Setup without robots or Acopos Matrix
@@ -368,7 +370,7 @@ class MAPs(BaseSample):
             #self.on_impulse_event()
 
             self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
-            self._world.add_physics_callback("sim_step", self.sim_xbots_movement_4)
+            # self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
 
 
             # self._world.add_physics_callback("sim_step_ros", callback_fn=self.ros_tests)
@@ -460,7 +462,8 @@ class MAPs(BaseSample):
     # Function to move selected robot to desired pose 
     def move_to_pose(self, planning_group, position, orientation):
         self.planning_group = planning_group
-        pose_request = self.create_pose_msg(position, orientation)
+        quaternion = euler_angles_to_quat(orientation)  # reverse the order of the angles to be rxyz as in ROS
+        pose_request = self.create_pose_msg(position, quaternion)
         self.pub_group.publish(self.planning_group)
         self.pub_pose.publish(pose_request)
         return   
@@ -479,6 +482,10 @@ class MAPs(BaseSample):
 
     async def _on_start_experiment_event_async(self):
 
+
+        self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
+
+
         # Send shuttles to target
 
         # self.move_shuttle_to_target(1, 0.06, 0.42) # CHECK
@@ -493,25 +500,25 @@ class MAPs(BaseSample):
         #                          joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
 
         # self.move_shuttle_to_target(1, 0.06, 0.42) # CHECK
-        self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
-
-        self.planning_group = 'KUKA3_arm'
-        # offset = [-1.275, 1.04, 0.0]
-        # position = [-0.54, 0.30 , 0.25] 
-        # position = [position[i] - offset[i] for i in range(len(position))]
-        orientation = euler_angles_to_quat([0.0, 0.0, 0.0])  # roll, pitch, yaw
-        print("orientation: ", orientation)
-        # orientation = [0 , 0 , 0.707 , 0.707]
-
-        position_xy = self.platform_pos_to_coordinates(3,7, moveit_offset = False)
+        # self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
+        position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = False)
+        self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
 
         print("position_xy: ", position_xy)
 
-        # self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
+        self.planning_group = 'kr3_1_arm'
+        # offset = [-1.275, 1.04, 0.0]
+        # position = [-0.54, 0.30 , 0.25] 
+        # position = [position[i] - offset[i] for i in range(len(position))]
 
-        position_xy = self.platform_pos_to_coordinates(3,7, moveit_offset = True)
+        orientation = [0.0, np.pi/2, 0.0]
+        
+        # orientation = [0.0, 0.707, 0.0, 0.707]
+        # print("orientation: ", orientation)
 
-        position = [position_xy[0], position_xy[1] , 0.25]
+        position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = True)
+
+        position = [position_xy[0], position_xy[1] , 0.45]
         print("position_offset: ", position)
         # position = [0.855, -0.140, 0.30]
 
@@ -809,12 +816,12 @@ class MAPs(BaseSample):
         position_obj.z = position[2]
         pose.position = position_obj
 
-        # Set the orientation field of the Pose object
+        # Set the orientation field of the Pose object (rxyz)
         orientation_obj = Quaternion()
-        orientation_obj.x = orientation[0]
-        orientation_obj.y = orientation[1]
-        orientation_obj.z = orientation[2]
-        orientation_obj.w = orientation[3]
+        orientation_obj.x = orientation[1]
+        orientation_obj.y = orientation[2]
+        orientation_obj.z = orientation[3]
+        orientation_obj.w = orientation[0]
         pose.orientation = orientation_obj
 
         pose_stamped = PoseStamped(header=header, pose=pose)

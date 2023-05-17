@@ -67,7 +67,7 @@ class MAPsExtension(BaseSampleExtension):
         self.task_ui_elements["Real Setup Control"].enabled = False
         self.task_ui_elements["Simulation Control"].enabled = False
         self.task_ui_elements["Connect PMC"].enabled = False
-        self.task_ui_elements["Start Experiment"].enabled = False
+        self.task_ui_elements["Start Experiment"].enabled = True
         return
 
     def post_reset_button_event(self):
