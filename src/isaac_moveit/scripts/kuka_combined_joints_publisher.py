@@ -15,6 +15,7 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+import math
 from geometry_msgs.msg import Pose, Quaternion
 
 from math import pi, tau, dist, fabs, cos
@@ -37,7 +38,7 @@ class kuka_combined_joints_publisher:
 
 
         self.joints_dict = {}
-        
+
         self.joint_request = JointState()
         self.pose_request = Pose()
 
@@ -51,11 +52,11 @@ class kuka_combined_joints_publisher:
         self.scene = moveit_commander.PlanningSceneInterface()
 
         # Default group name
-        self.group_name = "KUKA3_arm"
+        self.group_name = "kr3_1_arm"
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
         self.eef_link = self.move_group.get_end_effector_link()
         self.move_group.allow_replanning(True)
-        
+
 
         self.display_trajectory_publisher = rospy.Publisher(
             "/move_group/display_planned_path",
@@ -73,15 +74,19 @@ class kuka_combined_joints_publisher:
         # Publisher for joint commands
         self.pub = rospy.Publisher("/joint_command", JointState, queue_size=1)
 
+        # TBD, publish joints only for selected move group
+        self.pub_test = rospy.Publisher("/arm_controller/command", JointState, queue_size=1)
+
+
         # Control from Rviz
         rospy.Subscriber("/joint_command_desired", JointState, self.joint_states_callback, queue_size=1)
-        
+
         # Control each robot from Isaac (1st select group, then get joint states)
         rospy.Subscriber("/joint_move_group_isaac", String, self.select_move_group, queue_size=1)
         rospy.Subscriber("/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
         rospy.Subscriber("/pose_command_isaac", Pose, self.go_to_pose_callback_isaac, queue_size=1)
         rospy.Subscriber("/cartesian_path_command_isaac", Pose, self.go_to_cartesian_path_callback_isaac, queue_size=1)
-      
+
     # Rviz Control
     def joint_states_callback(self, message):
 
@@ -107,11 +112,12 @@ class kuka_combined_joints_publisher:
 
         # Publishing combined message containing all arm and finger joints
         self.pub.publish(joint_commands)
+        self.pub_test.publish(joint_commands)
 
         rospy.loginfo("joint commands Rviz: %s", joint_commands)
 
         return
-      
+
     def select_move_group(self, message):
 
         rospy.loginfo("Robot joints: %s", self.robot_joints)
@@ -119,6 +125,9 @@ class kuka_combined_joints_publisher:
         self.group_name = message.data
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
         self.eef_link = self.move_group.get_end_effector_link()
+
+        rospy.loginfo("End effector link: %s", self.eef_link)
+
         # params = { 'Robot_IP' : '192.168.1.1'}
         # config = self.client.update_configuration(params)
 
@@ -130,7 +139,7 @@ class kuka_combined_joints_publisher:
     def go_to_joint_states_callback_isaac(self, message):
 
         rospy.loginfo("Message topic: %s", message)
-        
+
         # Get current joint positions
         joint_goal = self.move_group.get_current_joint_values()
 
@@ -210,28 +219,36 @@ class kuka_combined_joints_publisher:
         joint_commands.position = joint_values
         joint_commands.velocity = [0.0] * len(joint_values)
         joint_commands.effort = [0.0] * len(joint_values)
-        joint_commands.name = self.move_group.get_active_joints() 
+        joint_commands.name = self.move_group.get_active_joints()
 
         # Publishing combined message containing all arm and finger joints
         self.pub.publish(joint_commands)
 
-        return 
+        return
 
     def go_to_pose_callback_isaac(self, message):
         # NOT WORKING YET
         # Get current joint positions
         # joint_commands = JointState()
-        # joint_commands.name = self.move_group.get_active_joints() 
+        # joint_commands.name = self.move_group.get_active_joints()
 
         target_pose = Pose()
 
         target_pose.position.x = message.position.x
         target_pose.position.y = message.position.y
         target_pose.position.z = message.position.z
-        q = quaternion_from_euler(0.0, 0.0, 0.0)  # roll, pitch, yaw
-        target_pose.orientation = Quaternion(*q)
+        # q = quaternion_from_euler(0.0, math.pi/2, 0.0)  # roll, pitch, yaw
+        # target_pose.orientation = Quaternion(*q)
 
-        self.move_group.set_pose_target(target_pose, self.eef_link)
+        target_pose.orientation = message.orientation
+
+        rospy.loginfo("Target pose: %s", target_pose)
+
+
+        self.move_group.set_pose_target(target_pose, self.eef_link) # Reference from end-effector link (gripper base_link)
+        # [0,0,0,1] Sets the orientation of the end-effector link to robot base_link (world)
+
+        
 
         # self.move_group.go(wait=True)
         self.move_group.go(target_pose, wait=True)
@@ -304,13 +321,13 @@ if __name__ == "__main__":
 
     """ What I send:
 
-    header: 
+    header:
         seq: 170
-        stamp: 
+        stamp:
             secs: 3010
             nsecs: 716823688
         frame_id: "base_link"
-    name: 
+    name:
     - joint_a1
     - joint_a2
     - joint_a3
@@ -324,14 +341,14 @@ if __name__ == "__main__":
 
     """ What I get:
 
-    header: 
+    header:
         seq: 45 <-- Several messages, not only one
-        stamp: 
+        stamp:
             secs: 315
             nsecs: 450016452
         frame_id: "world"
 
-    name: 
+    name:
     - kr3_1_joint_a1
     - kr3_1_joint_a2
     - kr3_1_joint_a3
@@ -374,11 +391,11 @@ if __name__ == "__main__":
     """
 
     """
-    position: 
+    position:
         x: 0.6
         y: 0.49601638140176374
         z: 0.3
-    orientation: 
+    orientation:
         x: 0.0
         y: 0.0
         z: 0.707

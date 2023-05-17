@@ -8,7 +8,7 @@
 
 from omni.isaac.examples.base_sample import BaseSample
 from omni.isaac.core import World
-from omni.isaac.core.prims import GeometryPrim, XFormPrim
+from omni.isaac.core.prims import GeometryPrim, XFormPrim, RigidPrim
 import omni.kit.commands
 from pxr import Sdf, Gf, UsdPhysics
 from omni.isaac.core.utils.rotations import euler_angles_to_quat, quat_to_euler_angles
@@ -18,6 +18,7 @@ from omni.isaac.core.utils.stage import add_reference_to_stage
 from omni.isaac.core.robots import Robot
 from omni.isaac.core.utils.types import ArticulationAction
 from omni.isaac.core.articulations import Articulation
+from omni.isaac.core.physics_context import PhysicsContext
 
 import carb
 
@@ -71,8 +72,8 @@ class MAPs(BaseSample):
 
         # Shuttles:
         self._number_shuttles = 2
-        self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
-        #self._shuttle_position = np.array([0.0, 0.0, 1.07])
+        #self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
+        self._shuttle_position = np.array([0.06, 0.06, 1.07])
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
         self._target = np.array([0.8, 0.52])
         self._shuttle_scale = 0.01
@@ -81,13 +82,14 @@ class MAPs(BaseSample):
 
         # Trays
         self._number_tray_vial = 1
-        self._tray_vial_position = np.array([1.2277, -0.9815, 1.085])
+        self._tray_vial_position = np.array([0.06, 0.06, 1.10])
         # self._tray_vial_position = np.array([1.2277, -1.2, 1])
-        self._tray_vial_scale = 0.01
+        self._tray_vial_scale = 0.0098
 
         self._number_tray_beaker = 1
-        self._tray_beaker_position = np.array([1.42, -1.2, 1])
-        self._tray_beaker_scale = 0.01
+        self._tray_beaker_position = np.array([0.06, 0.18, 1.090])
+        # self._tray_beaker_position = np.array([1.42, -1.2, 1])
+        self._tray_beaker_scale = 0.0099
 
         # Flyways:
         # DEFINE FLYWAYS MATRIX
@@ -128,9 +130,9 @@ class MAPs(BaseSample):
             "franka": "omniverse://localhost/NVIDIA/Assets/Isaac/2022.2.1/Isaac/Robots/Franka/franka_alt_fingers.usd",
             "flyway": self.asset_folder + "flyways/flyway_segment.usd",
             # "shuttle": self.asset_folder + "120x120x10/acopos_shuttle_120.usd", # Basic shuttle
-            "shuttle": self.asset_folder + "120x120x10/shuttle.usd",
-            "tray_vial" : self.asset_folder + "Trays/Tray_vial.usd",
-            "tray_flask" : self.asset_folder + "Trays/Tray_beaker.usd",
+            "shuttle": self.asset_folder + "120x120x10/shuttle_wh.usd",
+            "tray_vial" : self.asset_folder + "Trays/Tray_vial_w.usd",
+            "tray_flask" : self.asset_folder + "Trays/Tray_beaker_w.usd",
             "vial" : self.asset_folder + "vials/vial.usd",
             #"lab_setup": self.asset_folder + "Lab_setup_v2.usd" # Lab Setup with robots
             #"lab_setup": self.asset_folder + "Lab_setup_v1.usd"  # Lab Setup without robots
@@ -206,6 +208,12 @@ class MAPs(BaseSample):
         # stage.SetDefaultPrim(world)
         world.scene.add_default_ground_plane() # adds a default ground plane to the scene
 
+        # Add physics context
+        physx_context = PhysicsContext()
+
+        # Enable GPU dynamics
+        physx_context.enable_gpu_dynamics(True)
+
         # Add Xform reference for the shuttles
         world.scene.add(XFormPrim(prim_path="/World/LabSetup", name=f"LabSetup"))
 
@@ -224,20 +232,28 @@ class MAPs(BaseSample):
         # Add shuttles references
         for i in range(self._number_shuttles):
             add_reference_to_stage(usd_path=self.asset_paths["shuttle"], prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1),
-                                         name="shuttle_{}_ref_geom".format(i+1), collision=True))
+            world.scene.add(RigidPrim(prim_path="/World/LabSetup/Grid/shuttle_{}".format(i+1),
+                                         name="shuttle_{}_ref_geom".format(i+1),
+                                         position= self._shuttle_position + np.array([0.12 *i, 0, 0]),
+                                         scale = np.full((3,), self._shuttle_scale),
+                                         mass = 0.30))
             
         # Add Trays
         for i in range(self._number_tray_vial):
             add_reference_to_stage(usd_path=self.asset_paths["tray_vial"], prim_path="/World/LabSetup/Grid/tray_vial_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/tray_vial_{}".format(i+1),
-                                         name="tray_vial_{}_ref_geom".format(i+1), collision=True))
+            world.scene.add(RigidPrim(prim_path="/World/LabSetup/Grid/tray_vial_{}".format(i+1),
+                                         name="tray_vial_{}_ref_geom".format(i+1),
+                                         position= self._tray_vial_position + np.array([0.12 *i, 0, 0]),
+                                         scale = np.full((3,), self._tray_vial_scale),
+                                         mass = 0.15))
 
         for i in range(self._number_tray_beaker):
             add_reference_to_stage(usd_path=self.asset_paths["tray_flask"], prim_path="/World/LabSetup/Grid/tray_beaker_{}".format(i+1))
-            world.scene.add(GeometryPrim(prim_path="/World/LabSetup/Grid/tray_beaker_{}".format(i+1),
-                                         name="tray_beaker_{}_ref_geom".format(i+1), collision=True))
-
+            world.scene.add(RigidPrim(prim_path="/World/LabSetup/Grid/tray_beaker_{}".format(i+1),
+                                         name="tray_beaker_{}_ref_geom".format(i+1),
+                                         position= self._tray_beaker_position + np.array([0.12 *i, 0, 0]),
+                                         scale = np.full((3,), self._tray_beaker_scale),
+                                         mass = 0.15))
         # Add Robots references
         add_reference_to_stage(usd_path=self.asset_paths["kuka_multiple"],
                                 prim_path="/World/Kuka_Multiple_Arms")
@@ -270,15 +286,6 @@ class MAPs(BaseSample):
             for j in range(len(self.flyways_matrix[i])):
                 if self.flyways_matrix[i][j] == 1:
                     await self._add_flyway(i, j)
-        for i in range(self._number_shuttles):
-            await self._add_shuttle(i)
-        for i in range(self._number_tray_vial):
-            await self._add_tray_vial(i)
-        for i in range(self._number_tray_beaker):
-            await self._add_tray_beaker(i)
-        # for i in range(len(self.station_info)):
-        #     await self._add_station(i)
-
 
 
         # Shuttles Prim Dictionary 
@@ -373,8 +380,6 @@ class MAPs(BaseSample):
             # self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
 
 
-            # self._world.add_physics_callback("sim_step_ros", callback_fn=self.ros_tests)
-
         elif self.control_switch == 1:
             self._connect_pmc()  # Connect to PMC
             self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
@@ -410,29 +415,6 @@ class MAPs(BaseSample):
         self._shuttles_grid_ref_geom.set_default_state(position=self._grid_position,
                                                 orientation=self._grid_orientation)
 
-    # Add shuttles to the scene
-    async def _add_shuttle(self, shuttle_number):
-        self._shuttle_ref_geom = self._world.scene.get_object(f"shuttle_{shuttle_number+1}_ref_geom")
-        self._shuttle_ref_geom.set_local_scale(np.array([self._shuttle_scale]))
-        self._shuttle_ref_geom.set_world_pose(position= self._shuttle_position + (-0.121 * (shuttle_number), 0, 0))
-        self._shuttle_ref_geom.set_default_state(position=self._shuttle_position)
-        self._shuttle_ref_geom.set_collision_approximation("none")
-
-    # Add trays to the scene
-    async def _add_tray_vial(self, tray_vial_number):
-        self._tray_vial_ref_geom = self._world.scene.get_object(f"tray_vial_{tray_vial_number+1}_ref_geom")
-        self._tray_vial_ref_geom.set_local_scale(np.array([self._tray_vial_scale]))
-        self._tray_vial_ref_geom.set_world_pose(position= self._tray_vial_position + (0, 0, 0.015 * (tray_vial_number)))
-        self._tray_vial_ref_geom.set_default_state(position=self._tray_vial_position)
-        self._tray_vial_ref_geom.set_collision_approximation("none")
-    async def _add_tray_beaker(self, tray_beaker_number):
-        self._tray_beaker_ref_geom = self._world.scene.get_object(f"tray_beaker_{tray_beaker_number+1}_ref_geom")
-        self._tray_beaker_ref_geom.set_local_scale(np.array([self._tray_beaker_scale]))
-        self._tray_beaker_ref_geom.set_world_pose(position= self._tray_beaker_position + (0, 0, 0.021 * (tray_beaker_number)))
-        self._tray_beaker_ref_geom.set_default_state(position=self._tray_beaker_position)
-        self._tray_beaker_ref_geom.set_collision_approximation("none")
-
-
     ## Interface Functions:
     async def _on_sim_control_event_async(self):
         world = self.get_world()
@@ -449,7 +431,6 @@ class MAPs(BaseSample):
         self._world.add_physics_callback("sim_step_move", callback_fn=self.send_xbots_positions)
         await world.play_async()
         return
-    
 
     # Function to move selected robot to desired joints position   
     def move_to_joint_state(self, planning_group, joint_state_request):
