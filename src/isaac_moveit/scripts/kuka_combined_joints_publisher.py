@@ -53,6 +53,7 @@ class kuka_combined_joints_publisher:
 
         # Default group name
         self.group_name = "kr3_1_arm"
+
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
         self.eef_link = self.move_group.get_end_effector_link()
         self.move_group.allow_replanning(True)
