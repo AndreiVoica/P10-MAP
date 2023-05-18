@@ -5,7 +5,7 @@
   <arg name="paused" default="false" doc="Start Gazebo paused"/>
   <arg name="world_name" default="worlds/empty.world" doc="Gazebo world file"/>
   <arg name="world_pose" default="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0" doc="Pose to spawn the robot at"/>
-  <arg name="initial_joint_positions" default=" -J kr3_1_joint_a1 0 -J kr3_1_joint_a2 0 -J kr3_1_joint_a3 0 -J kr3_1_joint_a4 0 -J kr3_1_joint_a5 0 -J kr3_1_joint_a6 0 -J kr3_1_schunk_joint_left 0 -J kr3_1_schunk_joint_right 0 -J kr3_2_joint_a1 0 -J kr3_2_joint_a2 0 -J kr3_2_joint_a3 0 -J kr3_2_joint_a4 0 -J kr3_2_joint_a5 0 -J kr3_2_joint_a6 0 -J kr3_2_schunk_joint_left 0 -J kr3_2_schunk_joint_right 0 -J kr3_3_joint_a1 0 -J kr3_3_joint_a2 0 -J kr3_3_joint_a3 0 -J kr3_3_joint_a4 0 -J kr3_3_joint_a5 0 -J kr3_3_joint_a6 0 -J kr3_4_joint_a1 0 -J kr3_4_joint_a2 0 -J kr3_4_joint_a3 0 -J kr3_4_joint_a4 0 -J kr3_4_joint_a5 0 -J kr3_4_joint_a6 0 -J kr4_5_joint_a1 0 -J kr4_5_joint_a2 0 -J kr4_5_joint_a3 0 -J kr4_5_joint_a4 0 -J kr4_5_joint_a5 0 -J kr4_5_joint_a6 0 -J kr4_5_schunk_joint_left 0 -J kr4_5_schunk_joint_right 0" doc="Initial joint configuration of the robot"/>
+  <arg name="initial_joint_positions" default=" -J kr3_1_schunk_joint_left 0 -J kr3_1_schunk_joint_right 0 -J kr3_2_schunk_joint_left 0 -J kr3_2_schunk_joint_right 0 -J kr4_5_schunk_joint_left 0 -J kr4_5_schunk_joint_right 0" doc="Initial joint configuration of the robot"/>
 
   <!-- Start Gazebo paused to allow the controllers to pickup the initial pose -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch" pass_all_args="true">

@@ -1,5 +1,5 @@
-stomp/KUKA1_arm:
-  group_name: KUKA1_arm
+stomp/kr3_1_arm:
+  group_name: kr3_1_arm
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -37,8 +37,8 @@ stomp/KUKA1_arm:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA1_hand:
-  group_name: KUKA1_hand
+stomp/kr3_1_hand:
+  group_name: kr3_1_hand
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -76,8 +76,8 @@ stomp/KUKA1_hand:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA2_arm:
-  group_name: KUKA2_arm
+stomp/kr3_2_arm:
+  group_name: kr3_2_arm
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -115,8 +115,8 @@ stomp/KUKA2_arm:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA2_hand:
-  group_name: KUKA2_hand
+stomp/kr3_2_hand:
+  group_name: kr3_2_hand
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -154,8 +154,8 @@ stomp/KUKA2_hand:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA3_arm:
-  group_name: KUKA3_arm
+stomp/kr3_3_arm:
+  group_name: kr3_3_arm
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -193,8 +193,8 @@ stomp/KUKA3_arm:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA3_hand:
-  group_name: KUKA3_hand
+stomp/kr3_3_hand:
+  group_name: kr3_3_hand
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -232,8 +232,8 @@ stomp/KUKA3_hand:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA4_arm:
-  group_name: KUKA4_arm
+stomp/kr3_4_arm:
+  group_name: kr3_4_arm
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -271,8 +271,8 @@ stomp/KUKA4_arm:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA4_hand:
-  group_name: KUKA4_hand
+stomp/kr3_4_hand:
+  group_name: kr3_4_hand
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -310,8 +310,8 @@ stomp/KUKA4_hand:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA5_arm:
-  group_name: KUKA5_arm
+stomp/kr4_5_arm:
+  group_name: kr4_5_arm
   optimization:
     num_timesteps: 60
     num_iterations: 40
@@ -349,8 +349,8 @@ stomp/KUKA5_arm:
         publish_intermediate: True
         marker_topic: stomp_trajectory
         marker_namespace: optimized
-stomp/KUKA5_hand:
-  group_name: KUKA5_hand
+stomp/kr4_5_hand:
+  group_name: kr4_5_hand
   optimization:
     num_timesteps: 60
     num_iterations: 40
