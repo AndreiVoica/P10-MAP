@@ -36,7 +36,7 @@ import asyncio
 import rospy
 from sensor_msgs.msg import JointState
 from std_msgs.msg import String, Header
-from geometry_msgs.msg import Pose, PoseStamped, Point, Quaternion
+from geometry_msgs.msg import Pose, PoseStamped, PoseArray, Point, Quaternion
 from math import tau
 
 import sys
@@ -182,6 +182,7 @@ class MAPs(BaseSample):
         self.planning_group = String() # ROS topic name for move group
         self.joint_state_request = JointState()
         self.pose_request = Pose()  
+        self.cartesian_path_request = PoseArray()
         # self.joint_state_request.name = ["joint_a1", "joint_a2","joint_a3", "joint_a4", "joint_a5","joint_a6"]
 
 
@@ -301,7 +302,7 @@ class MAPs(BaseSample):
         self.pub_group = rospy.Publisher('/joint_move_group_isaac', String, queue_size=10)
         self.pub_joints = rospy.Publisher('/joint_command_isaac', JointState, queue_size=10)
         self.pub_pose = rospy.Publisher('/pose_command_isaac', Pose, queue_size=10)
-        self.pub_cartesian = rospy.Publisher('/cartesian_path_command_isaac', Pose, queue_size=10)
+        self.pub_cartesian_path = rospy.Publisher('/cartesian_path_command_isaac', PoseArray, queue_size=10)
 
         # Creating a action graph with ROS component nodes
         try:
@@ -435,19 +436,40 @@ class MAPs(BaseSample):
     def move_to_joint_state(self, planning_group, joint_state_request):
         self.planning_group = planning_group
         self.joint_state_request.position = joint_state_request
-        self.pub_joints.publish(self.joint_state_request)
         self.pub_group.publish(self.planning_group)
+        self.pub_joints.publish(self.joint_state_request)
         return
     
     # Function to move selected robot to desired pose 
     def move_to_pose(self, planning_group, position, orientation):
         self.planning_group = planning_group
         quaternion = euler_angles_to_quat(orientation)  # reverse the order of the angles to be rxyz as in ROS
-        pose_request = self.create_pose_msg(position, quaternion)
+        self.pose_request = self.create_pose_msg(position, quaternion)
         self.pub_group.publish(self.planning_group)
-        self.pub_pose.publish(pose_request)
+        self.pub_pose.publish(self.pose_request)
         return   
 
+    # Function to move selected robot to desired pose using cartesian path
+    def move_along_cartesian_path(self, planning_group, waypoints):
+        self.planning_group = planning_group
+        self.cartesian_path_request.header.stamp = rospy.Time.now()
+        self.cartesian_path_request.header.frame_id = 'world'  # or whatever frame_id you are using
+
+        for waypoint in waypoints:
+            position, orientation = waypoint
+            quaternion = euler_angles_to_quat(orientation)  # convert euler to quaternion
+            pose = self.create_pose_msg(position, quaternion)
+            self.cartesian_path_request.poses.append(pose)
+
+        print("Cartesian path request: ", self.cartesian_path_request)
+        self.pub_group.publish(self.planning_group)
+        self.pub_cartesian_path.publish(self.cartesian_path_request)
+
+        return
+    
+
+
+    # Function to move selected selected shuttle to desired position
     def move_shuttle_to_target(self, xbot_id, target_x, target_y):
         # Check if the xbot_id exists in xbot_ids
         if xbot_id in self.xbot_ids:
@@ -484,24 +506,38 @@ class MAPs(BaseSample):
         # self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
         # print("position_xy: ", position_xy)
 
-        self.planning_group = 'kr3_1_arm'
+        # self.planning_group = 'kr3_1_arm'
 
-        orientation = [0.0, np.pi/2, 0.0] # Gripper pointing down
+        # orientation = [0.0, np.pi/2, 0.0] # Gripper pointing down
         
-        # orientation = [0.0, 0.707, 0.0, 0.707]
-        # print("orientation: ", orientation)
+        # # orientation = [0.0, 0.707, 0.0, 0.707]
+        # # print("orientation: ", orientation)
+
+        # position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = True)
+
+        # position = [position_xy[0], position_xy[1] , 0.275]
+        # # print("position_offset: ", position)
+        # # # position = [0.855, -0.140, 0.30]
+
+
+        # self.move_to_pose(self.planning_group, position, orientation)
+
+        # self.planning_group = 'kr3_1_hand'
+        # self.gripper_control(self.planning_group, "close")
+
+
+        self.planning_group = 'kr3_1_arm'
 
         position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = True)
 
-        position = [position_xy[0], position_xy[1] , 0.275]
-        # print("position_offset: ", position)
-        # # position = [0.855, -0.140, 0.30]
+        waypoints = [
+            ((position_xy[0], position_xy[1], 0.45), (0.0, np.pi/2, 0.0)),
+            ((position_xy[0], position_xy[1], 0.30), (0.0, np.pi/2, 0.0)),
+            # ([position_xy[0], position_xy[1] + 0.5, 0.30], [0.0, np.pi/2, 0.0]),
+            # ([position_xy[0], position_xy[1] - 0.5, 0.30], [0.0, np.pi/2, 0.0]),
+        ]
 
-
-        self.move_to_pose(self.planning_group, position, orientation)
-
-        self.planning_group = 'kr3_1_hand'
-        self.gripper_control(self.planning_group, "close")
+        self.move_along_cartesian_path(self.planning_group, waypoints)
 
 
         # self.planning_group = 'KUKA4_arm'
@@ -590,7 +626,7 @@ class MAPs(BaseSample):
 
 
     # Move xbots in simulation (Checking other shuttles in the path)
-    def sim_xbots_movement_3(self, step_size):
+    def sim_xbots_movement_collision(self, step_size):
 
         max_speed = 1.0 # m/s
         move_increment = step_size * max_speed 

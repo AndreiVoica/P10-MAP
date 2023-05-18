@@ -15,8 +15,8 @@ import rospy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
+from geometry_msgs.msg import Pose, PoseArray, Quaternion
 import math
-from geometry_msgs.msg import Pose, Quaternion
 
 from math import pi, tau, dist, fabs, cos
 
@@ -86,7 +86,7 @@ class kuka_combined_joints_publisher:
         rospy.Subscriber("/joint_move_group_isaac", String, self.select_move_group, queue_size=1)
         rospy.Subscriber("/joint_command_isaac", JointState, self.go_to_joint_states_callback_isaac, queue_size=1)
         rospy.Subscriber("/pose_command_isaac", Pose, self.go_to_pose_callback_isaac, queue_size=1)
-        rospy.Subscriber("/cartesian_path_command_isaac", Pose, self.go_to_cartesian_path_callback_isaac, queue_size=1)
+        rospy.Subscriber("/cartesian_path_command_isaac", PoseArray, self.go_to_cartesian_path_callback_isaac, queue_size=10)
 
     # Rviz Control
     def joint_states_callback(self, message):
@@ -183,101 +183,39 @@ class kuka_combined_joints_publisher:
 
     def go_to_cartesian_path_callback_isaac(self, message):
 
-        # Set target pose of the end-effector
-        target_pose = Pose()
-
-        target_pose.position.x = message.position.x
-        target_pose.position.y = message.position.y
-        target_pose.position.z = message.position.z
-        q = quaternion_from_euler(0.0, 0.0, 0.0)  # roll, pitch, yaw
-        target_pose.orientation = Quaternion(*q)
-
         # Set a list of waypoints for the Cartesian path
-        waypoints = []
-        waypoints.append(target_pose)
+        waypoints = message.poses
+
+        rospy.loginfo("Cartesian path waypoints: %s", waypoints)
 
         # Set the start state to the current state
         self.move_group.set_start_state_to_current_state()
 
         # Compute the Cartesian path
-        (plan, fraction) = self.move_group.compute_cartesian_path(waypoints, # waypoint poses
-                                                                  0.01,      # eef_step
-                                                                  0.0)       # jump_threshold
+        (plan, fraction) = self.move_group.compute_cartesian_path(waypoints,  # waypoint poses
+                                                                0.01,  # eef_step
+                                                                0.0)  # jump_threshold
 
-        joint_values = self.move_group.get_current_joint_values()
+        # Execute the plan
+        self.move_group.execute(plan, wait=True)
 
-        # Move the arm along the computed path
-        self.move_group.go()
 
-        # self.move_group.execute(plan)
-
-        # Get the joint values from the computed plan
-        # joint_values = plan.joint_trajectory.points[-1].positions
-
-        # Publish the joint commands
-        joint_commands = JointState()
-        # joint_commands.header = message.header
-        joint_commands.position = joint_values
-        joint_commands.velocity = [0.0] * len(joint_values)
-        joint_commands.effort = [0.0] * len(joint_values)
-        joint_commands.name = self.move_group.get_active_joints()
-
-        # Publishing combined message containing all arm and finger joints
-        self.pub.publish(joint_commands)
-
-        return
 
     def go_to_pose_callback_isaac(self, message):
-        # NOT WORKING YET
-        # Get current joint positions
-        # joint_commands = JointState()
-        # joint_commands.name = self.move_group.get_active_joints()
 
         target_pose = Pose()
 
-        target_pose.position.x = message.position.x
-        target_pose.position.y = message.position.y
-        target_pose.position.z = message.position.z
-        # q = quaternion_from_euler(0.0, math.pi/2, 0.0)  # roll, pitch, yaw
-        # target_pose.orientation = Quaternion(*q)
-
-        target_pose.orientation = message.orientation
+        target_pose = message
 
         rospy.loginfo("Target pose: %s", target_pose)
 
-
         self.move_group.set_pose_target(target_pose, self.eef_link) # Reference from end-effector link (gripper base_link)
         # [0,0,0,1] Sets the orientation of the end-effector link to robot base_link (world)
+        # Pose orientation is given in quaternions with this shape: (w,x,y,z)
 
-        
-
-        # self.move_group.go(wait=True)
         self.move_group.go(target_pose, wait=True)
 
-        # self.move_group.stop()
-        # pose_goal = self.move_group.get_current_joint_values()
-
-
-        # for i, name in enumerate(pose_goal.name):
-
-        #     # Storing arm joint names and positions
-        #     self.joints_dict[name] = pose_goal[i]
-
-        #     # if name == "joint_left":
-
-        #     #     # Adding additional panda_finger_joint2 state info (extra joint used in isaac sim)
-        #     #     # panda_finger_joint2 mirrors panda_finger_joint1
-        #     #     joints_dict["joint_right"] = message.position[i]
-
-        # joint_commands.name = self.joints_dict.keys()
-        # joint_commands.position = self.joints_dict.values()
-
-        # # Publishing combined message containing all arm and finger joints
-        # self.pub.publish(joint_commands)
-
         current_joints = self.move_group.get_current_joint_values()
-
-        #self.joints_dict = {}
 
         return #self.all_close(target_pose, current_joints, 0.01)
 
