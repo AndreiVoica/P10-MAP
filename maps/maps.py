@@ -46,9 +46,6 @@ import omni.graph.core as og
 
 import rosgraph
 
-
-
-
 #########################################################################################################
 class MAPs(BaseSample):
     def __init__(self) -> None:
@@ -73,7 +70,7 @@ class MAPs(BaseSample):
         # Shuttles:
         self._number_shuttles = 2
         #self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
-        self._shuttle_position = np.array([0.06, 0.06, 1.07])
+        self._shuttle_position = np.array([0.30, 0.90, 1.07]) #([0.06, 0.06, 1.07])
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
         self._target = np.array([0.8, 0.52])
         self._shuttle_scale = 0.01
@@ -82,12 +79,12 @@ class MAPs(BaseSample):
 
         # Trays
         self._number_tray_vial = 1
-        self._tray_vial_position = np.array([0.06, 0.06, 1.10])
+        self._tray_vial_position = np.array([0.30, 0.90, 1.10]) #([0.06, 0.06, 1.10])
         # self._tray_vial_position = np.array([1.2277, -1.2, 1])
         self._tray_vial_scale = 0.0098
 
-        self._number_tray_beaker = 1
-        self._tray_beaker_position = np.array([0.06, 0.18, 1.090])
+        self._number_tray_beaker = 0
+        self._tray_beaker_position = np.array([0.18, 0.06, 1.090])
         # self._tray_beaker_position = np.array([1.42, -1.2, 1])
         self._tray_beaker_scale = 0.0099
 
@@ -126,7 +123,7 @@ class MAPs(BaseSample):
             #"kr3": self.asset_folder + "kr3r540/kr3r540_v4/kr3r540_v4.usd", # Schunk Kr3
             "kr3": self.asset_folder + "kr3r540_v4/kr3r540_v4g.usd", # Schunk Kr3
             "kr4": self.asset_folder + "kr4r600/kr4r600_v2.usd", 
-            "kuka_multiple": self.asset_folder + "kuka_multiple_arms/kuka_multiple_arms_4.usd",
+            "kuka_multiple": self.asset_folder + "kuka_multiple_arms/kuka_multiple_arms_5.usd",
             "franka": "omniverse://localhost/NVIDIA/Assets/Isaac/2022.2.1/Isaac/Robots/Franka/franka_alt_fingers.usd",
             "flyway": self.asset_folder + "flyways/flyway_segment.usd",
             # "shuttle": self.asset_folder + "120x120x10/acopos_shuttle_120.usd", # Basic shuttle
@@ -432,6 +429,8 @@ class MAPs(BaseSample):
         await world.play_async()
         return
 
+
+    ## CONTROL FUNCTIONS
     # Function to move selected robot to desired joints position   
     def move_to_joint_state(self, planning_group, joint_state_request):
         self.planning_group = planning_group
@@ -458,19 +457,19 @@ class MAPs(BaseSample):
         else:
             # If the xbot_id doesn't exist in xbot_ids, raise an exception
             raise ValueError(f"xbot_id {xbot_id} not found in xbot_ids")
+        
+    def gripper_control(self, planning_group, state):
+        if state == "open":
+            self.move_to_joint_state(planning_group, [0.0 , 0.0])
+        elif state == "close":
+            self.move_to_joint_state(planning_group, [-0.0047 , -0.0047])
+        else:
+            raise ValueError(f"state {state} not found in gripper_control")
 
-    
 
     async def _on_start_experiment_event_async(self):
 
-
-        self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
-
-
-        # Send shuttles to target
-
-        # self.move_shuttle_to_target(1, 0.06, 0.42) # CHECK
-
+        #self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
 
         # self.targets_x, self.targets_y = ([0.06, 0.42],[0.06, 0.18]) #([x1, x2],[y1, y2])
 
@@ -480,31 +479,29 @@ class MAPs(BaseSample):
         # self.move_to_joint_state(planning_group="KUKA2_arm", 
         #                          joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
 
-        # self.move_shuttle_to_target(1, 0.06, 0.42) # CHECK
-        # self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
-        position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = False)
-        self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
 
-        print("position_xy: ", position_xy)
+        # position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = False)
+        # self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
+        # print("position_xy: ", position_xy)
 
         self.planning_group = 'kr3_1_arm'
-        # offset = [-1.275, 1.04, 0.0]
-        # position = [-0.54, 0.30 , 0.25] 
-        # position = [position[i] - offset[i] for i in range(len(position))]
 
-        orientation = [0.0, np.pi/2, 0.0]
+        orientation = [0.0, np.pi/2, 0.0] # Gripper pointing down
         
         # orientation = [0.0, 0.707, 0.0, 0.707]
         # print("orientation: ", orientation)
 
         position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = True)
 
-        position = [position_xy[0], position_xy[1] , 0.45]
-        print("position_offset: ", position)
-        # position = [0.855, -0.140, 0.30]
+        position = [position_xy[0], position_xy[1] , 0.275]
+        # print("position_offset: ", position)
+        # # position = [0.855, -0.140, 0.30]
 
 
         self.move_to_pose(self.planning_group, position, orientation)
+
+        self.planning_group = 'kr3_1_hand'
+        self.gripper_control(self.planning_group, "close")
 
 
         # self.planning_group = 'KUKA4_arm'
@@ -542,7 +539,7 @@ class MAPs(BaseSample):
     # Move xbots in simulation (No collision detection)
     def sim_xbots_movement(self, step_size):
 
-        max_speed = 3.0 # m/s
+        max_speed = 0.3 # m/s
         max_accel = 10.0 # m/s^2
         move_increment = step_size * max_speed 
 
@@ -562,7 +559,6 @@ class MAPs(BaseSample):
             #     print("All shuttles have reached their destinations!")
 
                 return 
-
                 
             # Move shuttle up
             if (self.targets_y[shuttle_number]) > current_pos[1]:
@@ -652,8 +648,6 @@ class MAPs(BaseSample):
                         prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[xbot], current_pos[2]))
                     break
 
-
-    
 
     # Read shuttles position and orientation from physical setup
     def read_xbots_positions(self, step_size):
