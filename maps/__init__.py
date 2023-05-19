@@ -9,5 +9,5 @@
 
 from omni.isaac.examples.maps.maps import MAPs
 from omni.isaac.examples.maps.maps_extension import MAPsExtension
-#from omni.isaac.examples.user_examples.acopos_interface import AcoposInterface
+from omni.isaac.examples.maps.maps_controller import ControllerJointsLoader
 

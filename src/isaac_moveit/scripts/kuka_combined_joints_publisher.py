@@ -56,7 +56,7 @@ class kuka_combined_joints_publisher:
 
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
         self.eef_link = self.move_group.get_end_effector_link()
-        self.move_group.allow_replanning(True)
+        # self.move_group.allow_replanning(True)
 
 
         self.display_trajectory_publisher = rospy.Publisher(
@@ -193,7 +193,7 @@ class kuka_combined_joints_publisher:
 
         # Compute the Cartesian path
         (plan, fraction) = self.move_group.compute_cartesian_path(waypoints,  # waypoint poses
-                                                                0.01,  # eef_step
+                                                                0.02,  # eef_step
                                                                 0.0)  # jump_threshold
 
         # Execute the plan
