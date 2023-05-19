@@ -13,7 +13,6 @@ import omni.kit.commands
 from pxr import Sdf, Gf, UsdPhysics
 from omni.isaac.core.utils.rotations import euler_angles_to_quat, quat_to_euler_angles
 import numpy as np
-
 from omni.isaac.core.utils.stage import add_reference_to_stage
 from omni.isaac.core.robots import Robot
 from omni.isaac.core.utils.types import ArticulationAction
@@ -114,10 +113,14 @@ class MAPs(BaseSample):
         self._kuka_arms_orientation = np.array(euler_angles_to_quat([0, 0, 0]))
         self._kuka_arms_scale = 1.0
 
-       
+        # Stirrer
+        self._stirrer_position = np.array([0.10295, -0.69649, 0.0369])  # Gf.Vec3f(0.5, 0.0, 0.0)
+        self._stirrer_orientation = np.array(euler_angles_to_quat([np.pi/2, 0, np.pi]))
+        self._stirrer_scale = 1.0
+
         # USD asset paths:
         #self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
-        self.asset_folder = "/home/robotlab/Documents/Github/P10-MAP/assets/"
+        self.asset_folder = "/home/andrei/P10-MAP/assets/"
         self.asset_paths = {
             #"kr3": self.asset_folder + "kr3r540/kr3r540_v3/kr3r540_v3.usd",
             #"kr3": self.asset_folder + "kr3r540/kr3r540_v4/kr3r540_v4.usd", # Schunk Kr3
@@ -131,6 +134,7 @@ class MAPs(BaseSample):
             "tray_vial" : self.asset_folder + "Trays/Tray_vial_w.usd",
             "tray_flask" : self.asset_folder + "Trays/Tray_beaker_w.usd",
             "vial" : self.asset_folder + "vials/vial.usd",
+            "stirrer" : self.asset_folder + "Magnetic_stirrer/Magnetic_stirrer.usd",
             #"lab_setup": self.asset_folder + "Lab_setup_v2.usd" # Lab Setup with robots
             #"lab_setup": self.asset_folder + "Lab_setup_v1.usd"  # Lab Setup without robots
             "lab_setup": self.asset_folder + "Lab_setup_v0.usd" # Lab Setup without robots or Acopos Matrix
@@ -252,6 +256,16 @@ class MAPs(BaseSample):
                                          position= self._tray_beaker_position + np.array([0.12 *i, 0, 0]),
                                          scale = np.full((3,), self._tray_beaker_scale),
                                          mass = 0.15))
+        
+        # Add stirrer
+        add_reference_to_stage(usd_path=self.asset_paths["stirrer"],
+                                prim_path="/World/Kuka_Multiple_Arms/Stirrer")
+        
+        world.scene.add(RigidPrim(prim_path ="/World/Kuka_Multiple_Arms/Stirrer",
+                                            name="magneticstirrer",
+                                            position = self._stirrer_position,
+                                            orientation = self._stirrer_orientation,
+                                            mass = 1))
         # Add Robots references
         add_reference_to_stage(usd_path=self.asset_paths["kuka_multiple"],
                                 prim_path="/World/Kuka_Multiple_Arms")
