@@ -499,12 +499,18 @@ class MAPs(BaseSample):
     
     # Function to move selected robot to desired pose 
     def move_to_pose(self, planning_group, position, orientation = [0.0, np.pi/2, 0.0]):
+
+        moveit_planning_group = self.robot_joints_data[planning_group]["planning_group"]
         self.planning_group = planning_group
+
         quaternion = euler_angles_to_quat(orientation)  # reverse the order of the angles to be rxyz as in ROS
         self.pose_request = self.create_pose_msg(position, quaternion)
-        self.pub_group.publish(self.planning_group)
+        self.pub_group.publish(moveit_planning_group)
         self.pub_pose.publish(self.pose_request)
 
+        print("moveit_planning_group: ", moveit_planning_group)
+        print("planning group: ", self.planning_group)
+        print("position: ", self.pose_request.position)
      
         # Add a physics callback to check when the action has been completed
         self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(planning_group, position))
@@ -513,7 +519,10 @@ class MAPs(BaseSample):
 
     # Function to move selected robot to desired pose using cartesian path
     def move_along_cartesian_path(self, planning_group, waypoints):
+
+        moveit_planning_group = self.robot_joints_data[planning_group]["planning_group"]
         self.planning_group = planning_group
+
         self.cartesian_path_request.header.stamp = rospy.Time.now()
         self.cartesian_path_request.header.frame_id = 'world'  # or whatever frame_id you are using
 
@@ -524,8 +533,12 @@ class MAPs(BaseSample):
             self.cartesian_path_request.poses.append(pose)
 
         print("Cartesian path request: ", self.cartesian_path_request)
-        self.pub_group.publish(self.planning_group)
+        self.pub_group.publish(moveit_planning_group)
         self.pub_cartesian_path.publish(self.cartesian_path_request)
+
+         # Add a physics callback to check when the action has been completed
+        self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(planning_group, position))
+
         return
 
     # Function to move selected selected shuttle to desired position
@@ -568,7 +581,6 @@ class MAPs(BaseSample):
         return shuttle_pos[0], shuttle_pos[1], shuttle_pos[2]
 
     def get_gripper_joints_position(self, robot_hand):
-
         # Create an ArticulationSubset instance
         articulation_subset = ArticulationSubset(articulation=self.kukas, joint_names=self.robot_joints_data[robot_hand]['joints'])
 
@@ -647,6 +659,9 @@ class MAPs(BaseSample):
                     print("Invalid action name: ", action_name)
 
                 self.action_completed = False 
+        else:
+            carb.log_info("Recipe completed!")
+
 
     async def _on_start_experiment_event_async(self):
 
@@ -655,8 +670,6 @@ class MAPs(BaseSample):
 
         # self._world.add_physics_callback("sim_step_check", self.on_sim_step_check)
         # carb.log_info("Please run roscore before executing this script")
-
-
 
 
         #self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
@@ -748,8 +761,6 @@ class MAPs(BaseSample):
         og.Controller.set(og.Controller.attribute("/World/Kuka_Multiple_Arms/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
         
     def on_sim_step_check(self, planning_group, desired_position, step_size=1):
-        if isinstance(planning_group, str): 
-            planning_group = self.robot_joints_data[planning_group]["planning_group"]
         self.has_reached_position(planning_group, desired_position)
 
 

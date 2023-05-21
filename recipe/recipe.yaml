@@ -8,16 +8,16 @@
   parameters:
     planning_group: 'robot_arm_2'
     waypoints: 
-      - [[1.0, 2.0, 3.0], [0.0, 1.5708, 0.0]]
-      - [[1.5, 2.5, 3.5], [0.0, 1.5708, 0.0]]
+      - [[1.0, 2.0, 0.45], [0.0, 1.5708, 0.0]]
+      - [[1.5, 2.5, 0.273], [0.0, 1.5708, 0.0]]
 
 - action: MOVE_SHUTTLE_TO_TARGET
   parameters:
     xbot_id: 1
-    target_x: 5.0
-    target_y: 5.0
+    target_x: 5
+    target_y: 5
 
 - action: GRIPPER_CONTROL
   parameters:
-    planning_group: 'robot_arm_1'
+    planning_group: 'robot_hand_1'
     state: 'open'
