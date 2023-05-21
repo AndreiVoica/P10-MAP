@@ -5,7 +5,10 @@
 # and any modifications thereto.  Any use, reproduction, disclosure or
 # distribution of this software and related documentation without an express
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
-from omni.isaac.examples.maps.maps_controller import ControllerJointsLoader
+
+from omni.isaac.examples.maps.maps_reader import ControllerJointsLoader
+from omni.isaac.examples.maps.maps_reader import RecipeLoader
+
 from omni.isaac.examples.base_sample import BaseSample
 from omni.isaac.core import World
 from omni.isaac.core.prims import GeometryPrim, XFormPrim, RigidPrim
@@ -17,7 +20,7 @@ import numpy as np
 from omni.isaac.core.utils.stage import add_reference_to_stage
 from omni.isaac.core.robots import Robot
 from omni.isaac.core.utils.types import ArticulationAction
-from omni.isaac.core.articulations import Articulation
+from omni.isaac.core.articulations import Articulation, ArticulationSubset
 from omni.isaac.core.physics_context import PhysicsContext
 
 import carb
@@ -184,22 +187,29 @@ class MAPs(BaseSample):
             }
         }
 
+        # Prim paths Dictionaries:
         self.shuttles_prim_dict = {} # Dictionary to store shuttle prim paths
+        self.eef_link_prim_dict = {} # Dictionary to store eef link prim paths for each robot
+        self.gripper_prim_dict = {} # Dictionary to store gripper prim paths for each robot
 
         self.current_pos_dict = {} # Dictionary to store shuttle current positions
 
 
         # Get dictionary with planning group, joints and eef link for each robot
         self.filename = self.repo_folder + "src/kuka_config_multiple/config/simple_moveit_controllers.yaml"
-        self.loader = ControllerJointsLoader(self.filename)
-        self.robot_joints_data = self.loader.get_controller_data()
+        self.joints_loader = ControllerJointsLoader(self.filename)
+        self.robot_joints_data = self.joints_loader.get_controller_data()
 
         # OUTPUT {'robot_arm_1': {'planning_group': 'kr3_1_arm', 'joints': ['kr3_1_joint_a1', 'kr3_1_joint_a2', 'kr3_1_joint_a3', 'kr3_1_joint_a4', 'kr3_1_joint_a5', 'kr3_1_joint_a6'], 'eef_link': 'kr3_1_link_6'}, 'robot_hand_1': {'planning_group': 'kr3_1_hand', 'joints': ['kr3_1_schunk_joint_left', 'kr3_1_schunk_joint_right'], 'eef_link': 'kr3_1_link_6'}, 'robot_arm_2': {'planning_group': 'kr3_2_arm', 'joints': ['kr3_2_joint_a1', 'kr3_2_joint_a2', 'kr3_2_joint_a3', 'kr3_2_joint_a4', 'kr3_2_joint_a5', 'kr3_2_joint_a6'], 'eef_link': 'kr3_2_link_6'}, 'robot_hand_2': {'planning_group': 'kr3_2_hand', 'joints': ['kr3_2_schunk_joint_left', 'kr3_2_schunk_joint_right'], 'eef_link': 'kr3_2_link_6'}, 'robot_arm_3': {'planning_group': 'kr3_3_arm', 'joints': ['kr3_3_joint_a1', 'kr3_3_joint_a2', 'kr3_3_joint_a3', 'kr3_3_joint_a4', 'kr3_3_joint_a5', 'kr3_3_joint_a6'], 'eef_link': 'kr3_3_link_6'}, 'robot_arm_4': {'planning_group': 'kr3_4_arm', 'joints': ['kr3_4_joint_a1', 'kr3_4_joint_a2', 'kr3_4_joint_a3', 'kr3_4_joint_a4', 'kr3_4_joint_a5', 'kr3_4_joint_a6'], 'eef_link': 'kr3_4_link_6'}, 'robot_arm_5': {'planning_group': 'kr4_5_arm', 'joints': ['kr4_5_joint_a1', 'kr4_5_joint_a2', 'kr4_5_joint_a3', 'kr4_5_joint_a4', 'kr4_5_joint_a5', 'kr4_5_joint_a6'], 'eef_link': 'kr4_5_link_6'}, 'robot_hand_5': {'planning_group': 'kr4_5_hand', 'joints': ['kr4_5_schunk_joint_left', 'kr4_5_schunk_joint_right'], 'eef_link': 'kr4_5_link_6'}}
 
-
-        self.eef_link_prim_dict = {} # Dictionary to store eef link prim paths for each robot
-
         print(self.robot_joints_data)
+
+        # Load recipe with experiment instructions
+        self.actions_file = self.repo_folder + "recipe/recipe.yaml"
+        self.actions_loader = RecipeLoader(self.actions_file)
+        self.recipe = self.actions_loader.read_instructions_from_yaml()
+
+        print(self.recipe)
 
         # Ros topics messages
         self.planning_group = String() # ROS topic name for move group
@@ -207,6 +217,7 @@ class MAPs(BaseSample):
         self.pose_request = Pose()  
         self.cartesian_path_request = PoseArray()
 
+        self.action_completed = False
 
         self.control_switch = 0 # 0: Sim, 1: PMC
         
@@ -290,7 +301,7 @@ class MAPs(BaseSample):
                                 prim_path="/World/Kuka_Multiple_Arms")
 
         
-        world.scene.add(Articulation(prim_path ="/World/Kuka_Multiple_Arms",
+        self.kukas = world.scene.add(Articulation(prim_path ="/World/Kuka_Multiple_Arms",
                                             name="Kuka_Multiple_Arms",
                                             position = self._kuka_arms_position,
                                             orientation = self._kuka_arms_orientation))
@@ -330,19 +341,18 @@ class MAPs(BaseSample):
                 self.shuttles_prim_dict[key_name] = prim
             else:
                 print("Error: shuttle prim not found at path {}".format(shuttle_path))
-        print(self.shuttles_prim_dict)
 
-        # EEF Links Prim Dictionary
-        for eef_link_name, eef_link_data in self.robot_joints_data.items():
-            eef_link = eef_link_data['eef_link']
+        # Iterate over each robot
+        for robot_name, robot_data in self.robot_joints_data.items():
+            eef_link = robot_data['eef_link']
             eef_link_path = "/World/Kuka_Multiple_Arms/{}".format(eef_link)
             prim = stage.GetPrimAtPath(eef_link_path)
             if prim:
-                self.eef_link_prim_dict[eef_link_name] = prim
+                self.eef_link_prim_dict[robot_name] = prim
             else:
                 print("Error: eef link prim not found at path {}".format(eef_link_path))
-        print(self.eef_link_prim_dict)
 
+        print("EEF DICT: ", self.eef_link_prim_dict)
         
         # Create rospy node to publish requested joint positions
         rospy.init_node('isaac_joint_request_publisher')
@@ -494,6 +504,11 @@ class MAPs(BaseSample):
         self.pose_request = self.create_pose_msg(position, quaternion)
         self.pub_group.publish(self.planning_group)
         self.pub_pose.publish(self.pose_request)
+
+     
+        # Add a physics callback to check when the action has been completed
+        self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(planning_group, position))
+
         return   
 
     # Function to move selected robot to desired pose using cartesian path
@@ -511,10 +526,7 @@ class MAPs(BaseSample):
         print("Cartesian path request: ", self.cartesian_path_request)
         self.pub_group.publish(self.planning_group)
         self.pub_cartesian_path.publish(self.cartesian_path_request)
-
         return
-    
-
 
     # Function to move selected selected shuttle to desired position
     def move_shuttle_to_target(self, xbot_id, target_x, target_y):
@@ -536,42 +548,116 @@ class MAPs(BaseSample):
         else:
             raise ValueError(f"state {state} not found in gripper_control")
 
-    # Function to check if the robot/shuttle has reached the desired position
-    def has_reached_position(self, planning_group, desired_position, tolerance=0.01):
-        # Get current position of the robot
-        # current_position = self.get_current_position()
-        
-        robot_arm = planning_group
-        current_position = self.get_eef_link_position(robot_arm)
 
+    ## GET DATA FUNCTIONS
+    def get_eef_link_position(self, robot_arm):
+        # Collect end effector position
+        prim_eef_link = self.eef_link_prim_dict[robot_arm] # Robot arm is a string (e.g. "robot_arm_1"")
+
+        eef_pos = prim_eef_link.GetAttribute('xformOp:translate').Get()
+
+        return eef_pos[0], eef_pos[1], eef_pos[2]
+    
+
+    def get_shuttle_position(self, xbot_id):
+        # Collect shuttle position
+        shuttle_prim = self.shuttles_prim_dict[xbot_id] # xbot_id is an integer (e.g. 1, 2, 3, 4)
+
+        shuttle_pos = shuttle_prim.GetAttribute('xformOp:translate').Get()
+
+        return shuttle_pos[0], shuttle_pos[1], shuttle_pos[2]
+
+    def get_gripper_joints_position(self, robot_hand):
+
+        # Create an ArticulationSubset instance
+        articulation_subset = ArticulationSubset(articulation=self.kukas, joint_names=self.robot_joints_data[robot_hand]['joints'])
+
+        # Get the joint positions
+        joint_pos_left, joint_pos_right = articulation_subset.get_joint_positions()
+        # Get the joint positions
+
+        return joint_pos_left, joint_pos_right
+
+    # CHECK FUNCTION
+    def has_reached_position(self, planning_group, desired_position, tolerance=0.01):
+        """
+        Check if the robot/shuttle has reached the desired position
+        planning_group: string (Robot Arm) or integer (Shuttle)
+        desired_position: list of 3 floats [x, y, z] in Isaac Sim coordinates or string ("open" or "close") for gripper
+        """
+        
+        if isinstance(desired_position, str) and desired_position in ["open", "close"]:
+            # Get the gripper joint positions
+            joint_pos_left, joint_pos_right = self.get_gripper_joints_position(planning_group)
+            
+            # Check if the gripper is open or closed
+            if (desired_position == "open" and joint_pos_left < -0.0046 and joint_pos_right < -0.0046) or \
+            (desired_position == "close" and joint_pos_left > -0.001 and joint_pos_right > -0.001):
+                print("Action completed (Gripper)")
+                world= self.get_world()
+                world.remove_physics_callback("sim_step_check") # Remove the physics callback
+                self.action_completed = True # Set the action_completed flag to True
+                return True
+            else:
+                print("Current gripper position: ", joint_pos_left, joint_pos_right)
+                return False
+
+        elif isinstance(planning_group, str):  # Get current position of the robot
+            current_position = self.get_eef_link_position(planning_group)
+        elif isinstance(planning_group, int):  # Get current position of the robot
+            current_position = self.get_shuttle_position(planning_group)
+            desired_position[2] = current_position[2]
+        else:
+            print("Invalid planning group type. Must be a string for a robot arm or integer for a shuttle.")
+            return False
+        
         # Compute the distance between the current position and the desired position
         distance = math.sqrt((current_position[0] - desired_position[0])**2 +
-                             (current_position[1] - desired_position[1])**2 +
-                             (current_position[2] - desired_position[2])**2)
+                            (current_position[1] - desired_position[1])**2 +
+                            (current_position[2] - desired_position[2])**2)
 
         # Check if the distance is within the tolerance
         if distance <= tolerance:
             print("Action completed")
             world= self.get_world()
-            world.remove_physics_callback("sim_step_check")
+            world.remove_physics_callback("sim_step_check") # Remove the physics callback
+            self.action_completed = True # Set the action_completed flag to True
             return True
         else:
             print("Current position: ", current_position)   
             print("Distance: ", distance)
             return False
+        
+    def execute_actions(self):
+        if len(self.recipe) > 0:
+            if self.action_completed:
+                action = self.recipe.pop(0)  # Retrieve the first action in the list
+                action_name = action['action']
+                parameters = action['parameters']
+           
+                if action_name == 'MOVE_TO_POSE':
+                    self.move_to_pose(**parameters)  # The ** operator is used to unpack the dictionary into keyword arguments
+                elif action_name == 'MOVE_ALONG_CARTESIAN_PATH':
+                    self.move_along_cartesian_path(**parameters)
+                elif action_name == 'MOVE_SHUTTLE_TO_TARGET':
+                    self.move_shuttle_to_target(**parameters)
+                elif action_name == 'GRIPPER_CONTROL':
+                    self.gripper_control(**parameters)
+                else:
+                    print("Invalid action name: ", action_name)
 
-
-
-    def get_eef_link_position(self, robot_arm):
-        # Collect all end effectors positions
-        prim_eef_link = self.eef_link_prim_dict[robot_arm]
-
-        eef_pos = prim_eef_link.GetAttribute('xformOp:translate').Get()
-
-        return eef_pos[0], eef_pos[1], eef_pos[2]
-
+                self.action_completed = False 
 
     async def _on_start_experiment_event_async(self):
+
+        self.action_completed = True
+        self.execute_actions()
+
+        # self._world.add_physics_callback("sim_step_check", self.on_sim_step_check)
+        # carb.log_info("Please run roscore before executing this script")
+
+
+
 
         #self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
 
@@ -607,36 +693,52 @@ class MAPs(BaseSample):
         # self.planning_group = 'kr3_1_hand'
         # self.gripper_control(self.planning_group, "close")
 
+        # Use Articulation API to get joint values 
 
-        self.planning_group = self.robot_joints_data["robot_arm_1"]["planning_group"]
-        # print("planning_group: ", self.planning_group)
+        # print("Gripper positions: ", self.get_gripper_joints_position("robot_hand_1"))
+
+        # # Use Articulation API to get joint values
+        # joint_positions =  self.kukas.get_joint_positions()
+        # # print(joint_positions)
+
+
+
+
+
+        # self.planning_group = self.robot_joints_data["robot_arm_1"]["planning_group"]
+        # # print("planning_group: ", self.planning_group)
+
+        # # position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = True)
+
+        # # waypoints = [
+        # #     ((position_xy[0], position_xy[1], 0.45), (0.0, np.pi/2, 0.0)),
+        # #     ((position_xy[0], position_xy[1], 0.273), (0.0, np.pi/2, 0.0)),
+        # #     ((position_xy[0], position_xy[1], 0.45), (0.0, np.pi/2, 0.0)),
+        # #     ((position_xy[0], position_xy[1] - 0.25, 0.45), (0.0, np.pi/2, 0.0)),
+        # #     ((position_xy[0], position_xy[1] - 0.25, 0.25), (0.0, np.pi/2, 0.0)),
+
+        # # ]
+
+        # # self.move_along_cartesian_path(self.planning_group, waypoints)
+
+
+        # orientation = [0.0, np.pi/2, 0.0] # Gripper pointing down
 
         # position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = True)
 
-        # waypoints = [
-        #     ((position_xy[0], position_xy[1], 0.45), (0.0, np.pi/2, 0.0)),
-        #     ((position_xy[0], position_xy[1], 0.273), (0.0, np.pi/2, 0.0)),
-        #     ((position_xy[0], position_xy[1], 0.45), (0.0, np.pi/2, 0.0)),
-        #     ((position_xy[0], position_xy[1] - 0.25, 0.45), (0.0, np.pi/2, 0.0)),
-        #     ((position_xy[0], position_xy[1] - 0.25, 0.25), (0.0, np.pi/2, 0.0)),
+        # position = [position_xy[0], position_xy[1] , 0.275]
 
-        # ]
+        # self.move_to_pose(self.planning_group, position, orientation)
 
-        # self.move_along_cartesian_path(self.planning_group, waypoints)
-
-
+        # # Check if the robot has reached the desired position 
+        # # self._world.add_physics_callback("sim_step_check", self.on_sim_step_check("robot_arm_1", position))
+        # # self._world.add_physics_callback("sim_step_check", lambda: self.on_sim_step_check("robot_arm_1", position))
+        
+        # #CHECK IF WORKS CORRECTLY
+        # self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check("robot_arm_1", position))
 
 
-        orientation = [0.0, np.pi/2, 0.0] # Gripper pointing down
 
-        position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = True)
-
-        position = [position_xy[0], position_xy[1] , 0.275]
-
-        self.move_to_pose(self.planning_group, position, orientation)
-
-        # Check if the robot has reached the desired position #CHECK WHY IT DOES'T EVALUATE THIS ALL THE TIME
-        self._world.add_physics_callback("sim_step_check", self.on_sim_step_check("robot_arm_1", position))
 
 
         return
@@ -645,7 +747,9 @@ class MAPs(BaseSample):
         # Tick the Publish/Subscribe JointState, Publish TF and Publish Clock nodes each frame
         og.Controller.set(og.Controller.attribute("/World/Kuka_Multiple_Arms/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
         
-    def on_sim_step_check(self, planning_group, desired_position, step_size=0.1):
+    def on_sim_step_check(self, planning_group, desired_position, step_size=1):
+        if isinstance(planning_group, str): 
+            planning_group = self.robot_joints_data[planning_group]["planning_group"]
         self.has_reached_position(planning_group, desired_position)
 
 
@@ -964,6 +1068,10 @@ class MAPs(BaseSample):
         
         return x_coord, y_coord
 
+
+##############################################################################################################
+########################################## BFS Algortihm #####################################################
+##############################################################################################################
 
     def sim_xbots_movement_bfs(self, step_size):
         max_speed = 1.0 # m/s

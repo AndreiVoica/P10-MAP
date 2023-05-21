@@ -1,6 +1,9 @@
 import yaml
 
 class ControllerJointsLoader:
+    """
+    This class loads the controller joints data from the simple_moveit_controllers.yaml file
+    """
     def __init__(self, filename):
         self.filename = filename
         self.controller_data = {}
@@ -37,6 +40,20 @@ class ControllerJointsLoader:
 
     def get_controller_data(self):
         return self.controller_data
+
+class RecipeLoader:
+    def __init__(self, actions_file):
+        self.actions_file = actions_file
+
+    def read_instructions_from_yaml(self):
+        with open(self.actions_file, 'r') as file:
+            instructions_list = yaml.safe_load(file)
+
+        # for instruction in instructions_list:
+        #     instruction_name = instruction['name']
+        #     parameters = instruction['parameters']
+        
+        return instructions_list
 
 # Using the class
 # filename = '/home/robotlab/Documents/Github/P10-MAP/src/kuka_config_multiple/config/simple_moveit_controllers.yaml' # Path to the yaml file
