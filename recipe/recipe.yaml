@@ -1,7 +1,13 @@
-- action: MOVE_TO_POSE
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 1
+    target_y: 6
+
+- action: MOVE_TO_POSE_IN_PLATFORM
   parameters:
     planning_group: 'robot_arm_1'
-    position: [0.855, -0.140, 0.30]
+    position: [2, 7, 0.30]
     orientation: [0.0, 1.5708, 0.0]
 
 - action: MOVE_ALONG_CARTESIAN_PATH
@@ -11,13 +17,13 @@
       - [[1.0, 2.0, 0.45], [0.0, 1.5708, 0.0]]
       - [[1.5, 2.5, 0.273], [0.0, 1.5708, 0.0]]
 
-- action: MOVE_SHUTTLE_TO_TARGET
-  parameters:
-    xbot_id: 1
-    target_x: 5
-    target_y: 5
-
 - action: GRIPPER_CONTROL
   parameters:
     planning_group: 'robot_hand_1'
     state: 'open'
+
+- action: MOVE_TO_POSE_MOVEIT
+  parameters:
+    planning_group: 'robot_arm_1'
+    position: [0.855, -0.140, 0.30]
+    orientation: [0.0, 1.5708, 0.0]

@@ -72,10 +72,9 @@ class MAPs(BaseSample):
 
         # Shuttles:
         self._number_shuttles = 2
-        #self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
-        self._shuttle_position = np.array([0.30, 0.90, 1.07]) #([0.06, 0.06, 1.07])
+        # self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
+        self._shuttle_position = np.array([0.06, 0.06, 1.07]) #([0.06, 0.06, 1.07])
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
-        self._target = np.array([0.8, 0.52])
         self._shuttle_scale = 0.01
         # self.xbot_ids = [1, 2, 3, 4, 5, 6, 7, 8]
         self.xbot_ids = [i for i in range(1, self._number_shuttles + 1)] 
@@ -113,7 +112,6 @@ class MAPs(BaseSample):
                 self.grid.append(grid_row)
 
         # Magnetic Stirrer
-        #self._stirrer_position = np.array([0.10295, -0.69649, 0.0369])  
         self._stirrer_position = np.array([-0.15554, 0.71716, 1.0049]) 
         self._stirrer_orientation = np.array(euler_angles_to_quat([np.pi/2, 0, 0]))
         self._stirrer_scale = 1.0
@@ -135,14 +133,13 @@ class MAPs(BaseSample):
         self._removing_station_position = np.array([-1.04649, 1.23841, 1.0049]) 
         self._removing_station_orientation = np.array(euler_angles_to_quat([0, 0, 0]))
         self._removing_station_scale = 0.01
-
         # Kuka Multiple Arms:
         self._kuka_arms_position = np.array([0.0, 0.0, 1.0]) 
         self._kuka_arms_orientation = np.array(euler_angles_to_quat([0, 0, 0]))
         self._kuka_arms_scale = 1.0
 
         # Repository path:
-        self.repo_folder = "/home/andrei/P10-MAP/"
+        self.repo_folder = "/home/robotlab/Documents/Github/P10-MAP/"
 
         # USD asset paths:
         # self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
@@ -267,6 +264,9 @@ class MAPs(BaseSample):
         # Enable GPU dynamics
         physx_context.enable_gpu_dynamics(True)
 
+        # Reload recipe
+        self.recipe = self.actions_loader.read_instructions_from_yaml()
+
         # Add Xform reference for the shuttles
         world.scene.add(XFormPrim(prim_path="/World/LabSetup", name=f"LabSetup"))
 
@@ -317,8 +317,8 @@ class MAPs(BaseSample):
                                             position = self._stirrer_position,
                                             orientation = self._stirrer_orientation,
                                             mass = 3))
-        
-        # Add HPLC
+
+            # Add HPLC
         add_reference_to_stage(usd_path=self.asset_paths["hplc"],
                                 prim_path="/World/LabSetup/hplc")
         
@@ -476,19 +476,19 @@ class MAPs(BaseSample):
 
         # Control Switch
         if self.control_switch == 0:
-            # self._world.add_physics_callback("sim_step", callback_fn=self.sim_xbots_movement_2)
+            # self._world.add_physics_callback("sim_step_shuttles", callback_fn=self.sim_xbots_movement_2)
 
             # rospy.init_node('isaac_test', anonymous=True)
             # self.pub_joints = rospy.Publisher("/joint_command_desired", queue_size=1)
             #self.on_impulse_event()
 
             self._world.add_physics_callback("sim_step_impulse", callback_fn=self.on_impulse_event)
-            # self._world.add_physics_callback("sim_step", self.sim_xbots_movement)
+            # self._world.add_physics_callback("sim_step_shuttles", self.sim_xbots_movement)
 
 
         elif self.control_switch == 1:
             self._connect_pmc()  # Connect to PMC
-            self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
+            self._world.add_physics_callback("sim_step_acopos", callback_fn=self.read_xbots_positions) #callback names have to be unique
             self._world.add_physics_callback("sim_step_move", callback_fn=self.send_xbots_positions)
 
         return
@@ -525,15 +525,15 @@ class MAPs(BaseSample):
     async def _on_sim_control_event_async(self):
         world = self.get_world()
         self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
-        world.remove_physics_callback("sim_step")
-        world.add_physics_callback("sim_step", self.sim_xbots_movement)
+        world.remove_physics_callback("sim_step_acopos")
+        # world.add_physics_callback("sim_step_shuttles", self.sim_xbots_movement)
         await world.play_async()
         return
     
     async def _on_real_control_event_async(self):
         world = self.get_world()
-        world.remove_physics_callback("sim_step")
-        self._world.add_physics_callback("sim_step", callback_fn=self.read_xbots_positions) #callback names have to be unique
+        world.remove_physics_callback("sim_step_shuttles")
+        self._world.add_physics_callback("sim_step_acopos", callback_fn=self.read_xbots_positions) #callback names have to be unique
         self._world.add_physics_callback("sim_step_move", callback_fn=self.send_xbots_positions)
         await world.play_async()
         return
@@ -603,6 +603,12 @@ class MAPs(BaseSample):
             # If the xbot_id doesn't exist in xbot_ids, raise an exception
             raise ValueError(f"xbot_id {xbot_id} not found in xbot_ids")
         
+        # Add physics callback to move the selected shuttle to the desired position 
+        # and to check when the action has been completed
+        self._world.add_physics_callback("sim_step_shuttles", self.sim_xbots_movement)
+        self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(xbot_id, [target_x, target_y]))
+
+        
     # Function to open and close the gripper
     def gripper_control(self, planning_group, state):
         if state == "open":
@@ -656,7 +662,7 @@ class MAPs(BaseSample):
             # Check if the gripper is open or closed
             if (desired_position == "open" and joint_pos_left < -0.0046 and joint_pos_right < -0.0046) or \
             (desired_position == "close" and joint_pos_left > -0.001 and joint_pos_right > -0.001):
-                print("Action completed (Gripper)")
+                print("Action completed (GRIPPER_CONTROL)")
                 world= self.get_world()
                 world.remove_physics_callback("sim_step_check") # Remove the physics callback
                 self.action_completed = True # Set the action_completed flag to True
@@ -667,29 +673,45 @@ class MAPs(BaseSample):
 
         elif isinstance(planning_group, str):  # Get current position of the robot
             current_position = self.get_eef_link_position(planning_group)
-        elif isinstance(planning_group, int):  # Get current position of the robot
+            # Compute the distance between the current position and the desired position
+            distance = math.sqrt((current_position[0] - desired_position[0])**2 +
+                                 (current_position[1] - desired_position[1])**2 +
+                                 (current_position[2] - desired_position[2])**2)
+            # Check if the distance is within the tolerance
+            if distance <= tolerance:
+                print("Action completed")
+                world= self.get_world()
+                world.remove_physics_callback("sim_step_check") # Remove the check physics callback
+                self.action_completed = True # Set the action_completed flag to True
+                return True
+            else:
+                print("Current position: ", current_position)   
+                print("Distance: ", distance)
+                return False
+
+        elif isinstance(planning_group, int):  # Get current position of the shuttle
             current_position = self.get_shuttle_position(planning_group)
-            desired_position[2] = current_position[2]
+            # Compute the distance between the current position and the desired position
+            distance = math.sqrt((current_position[0] - desired_position[0])**2 +
+                                 (current_position[1] - desired_position[1])**2)
+            # Check if the distance is within the tolerance
+            if distance <= tolerance:
+                print("Action completed (MOVE_SHUTTLE_TO_TARGET)")
+                world= self.get_world()
+                world.remove_physics_callback("sim_step_check") # Remove the check physics callback
+                world.remove_physics_callback("sim_step_shuttles") #
+                self.action_completed = True # Set the action_completed flag to True
+                return True
+            else:
+                print("Current position: ", current_position)   
+                print("Distance: ", distance)
+                return False
+
         else:
             print("Invalid planning group type. Must be a string for a robot arm or integer for a shuttle.")
             return False
         
-        # Compute the distance between the current position and the desired position
-        distance = math.sqrt((current_position[0] - desired_position[0])**2 +
-                            (current_position[1] - desired_position[1])**2 +
-                            (current_position[2] - desired_position[2])**2)
 
-        # Check if the distance is within the tolerance
-        if distance <= tolerance:
-            print("Action completed")
-            world= self.get_world()
-            world.remove_physics_callback("sim_step_check") # Remove the physics callback
-            self.action_completed = True # Set the action_completed flag to True
-            return True
-        else:
-            print("Current position: ", current_position)   
-            print("Distance: ", distance)
-            return False
         
     def execute_actions(self):
         if len(self.recipe) > 0:
@@ -698,14 +720,25 @@ class MAPs(BaseSample):
                 action_name = action['action']
                 parameters = action['parameters']
            
-                if action_name == 'MOVE_TO_POSE':
+                if action_name == 'MOVE_TO_POSE_MOVEIT':
                     self.move_to_pose(**parameters)  # The ** operator is used to unpack the dictionary into keyword arguments
+                
+                elif action_name == 'MOVE_TO_POSE_IN_PLATFORM':
+                    position_xy = self.platform_pos_to_coordinates(parameters['position'][0],parameters['position'][1], moveit_offset = True)
+                    self.move_to_pose(parameters['planning_group'], [position_xy[0],position_xy[1],parameters['position'][2]], parameters['orientation'])
+                
                 elif action_name == 'MOVE_ALONG_CARTESIAN_PATH':
                     self.move_along_cartesian_path(**parameters)
+
                 elif action_name == 'MOVE_SHUTTLE_TO_TARGET':
-                    self.move_shuttle_to_target(**parameters)
+                    position_xy = self.platform_pos_to_coordinates(parameters['target_x'],parameters['target_y'], moveit_offset = False)
+                    print("position_xy: ", position_xy)
+                    self.move_shuttle_to_target(parameters['xbot_id'], position_xy[0], position_xy[1])
+                    # self.move_shuttle_to_target(**parameters)
+                
                 elif action_name == 'GRIPPER_CONTROL':
                     self.gripper_control(**parameters)
+
                 else:
                     print("Invalid action name: ", action_name)
 
@@ -716,8 +749,8 @@ class MAPs(BaseSample):
 
     async def _on_start_experiment_event_async(self):
 
-        self.action_completed = True
-        self.execute_actions()
+        # self.action_completed = True
+        # self.execute_actions()
 
         # self._world.add_physics_callback("sim_step_check", self.on_sim_step_check)
         # carb.log_info("Please run roscore before executing this script")
@@ -734,8 +767,8 @@ class MAPs(BaseSample):
         #                          joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
 
 
-        # position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = False)
-        # self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
+        position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = False)
+        self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
         # print("position_xy: ", position_xy)
 
         # self.planning_group = 'kr3_1_arm'
