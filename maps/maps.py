@@ -31,6 +31,8 @@ from pmclib import xbot_commands as bot     # PMC Mover related commands
 from pmclib import pmc_types                # PMC API Types
 import time
 import random
+import functools
+
 
 from omni.isaac.core.utils import viewports, extensions
 from omni.isaac.core.utils.prims import set_targets
@@ -78,6 +80,9 @@ class MAPs(BaseSample):
         self._shuttle_scale = 0.01
         # self.xbot_ids = [1, 2, 3, 4, 5, 6, 7, 8]
         self.xbot_ids = [i for i in range(1, self._number_shuttles + 1)] 
+
+        self.targets_x = []
+        self.targets_y = []
 
         # Trays
         self._number_tray_vial = 1
@@ -290,6 +295,9 @@ class MAPs(BaseSample):
                                          position= self._shuttle_position + np.array([0.12 *i, 0, 0]),
                                          scale = np.full((3,), self._shuttle_scale),
                                          mass = 0.30))
+            self.targets_x = np.append(self.targets_x, self._shuttle_position[0] + np.array([0.12 *i]))
+            self.targets_y = np.append(self.targets_y, self._shuttle_position[1])
+        
             
         # Add Trays
         for i in range(self._number_tray_vial):
@@ -472,7 +480,7 @@ class MAPs(BaseSample):
             target_prim_paths=["/World/Kuka_Multiple_Arms"]
         )
 
-        self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
+        # self.targets_x, self.targets_y = self.create_random_coordinates(self._number_shuttles)
 
         # Control Switch
         if self.control_switch == 0:
@@ -587,13 +595,13 @@ class MAPs(BaseSample):
         self.pub_group.publish(moveit_planning_group)
         self.pub_cartesian_path.publish(self.cartesian_path_request)
 
-         # Add a physics callback to check when the action has been completed
+        # Add a physics callback to check when the action has been completed
         self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(planning_group, position))
 
         return
 
     # Function to move selected selected shuttle to desired position
-    def move_shuttle_to_target(self, xbot_id, target_x, target_y):
+    def move_shuttle_to_target(self, xbot_id: int , target_x, target_y):
         # Check if the xbot_id exists in xbot_ids
         if xbot_id in self.xbot_ids:
             # Update the corresponding target_x and target_y values
@@ -603,10 +611,18 @@ class MAPs(BaseSample):
             # If the xbot_id doesn't exist in xbot_ids, raise an exception
             raise ValueError(f"xbot_id {xbot_id} not found in xbot_ids")
         
+        desired_position = [target_x, target_y]
+        print("xbot_id_function: ", xbot_id)
+        print("desired_position: ", desired_position)
+
         # Add physics callback to move the selected shuttle to the desired position 
         # and to check when the action has been completed
         self._world.add_physics_callback("sim_step_shuttles", self.sim_xbots_movement)
-        self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(xbot_id, [target_x, target_y]))
+
+        callback_fn = functools.partial(self.on_sim_step_check, xbot_id, desired_position)
+        self._world.add_physics_callback("sim_step_check", callback_fn)
+
+        # self._world.add_physics_callback("sim_step_check", lambda xbot_id=xbot_id, desired_position=desired_position: self.on_sim_step_check(xbot_id, desired_position))
 
         
     # Function to open and close the gripper
@@ -630,12 +646,11 @@ class MAPs(BaseSample):
     
 
     def get_shuttle_position(self, xbot_id):
-        # Collect shuttle position
-        shuttle_prim = self.shuttles_prim_dict[xbot_id] # xbot_id is an integer (e.g. 1, 2, 3, 4)
-
+        # Retrieve the shuttle position
+        shuttle_prim = self.shuttles_prim_dict["prim_{}".format(xbot_id)]
         shuttle_pos = shuttle_prim.GetAttribute('xformOp:translate').Get()
-
         return shuttle_pos[0], shuttle_pos[1], shuttle_pos[2]
+        
 
     def get_gripper_joints_position(self, robot_hand):
         # Create an ArticulationSubset instance
@@ -679,7 +694,7 @@ class MAPs(BaseSample):
                                  (current_position[2] - desired_position[2])**2)
             # Check if the distance is within the tolerance
             if distance <= tolerance:
-                print("Action completed")
+                print("Action completed (Robot moved to target)")
                 world= self.get_world()
                 world.remove_physics_callback("sim_step_check") # Remove the check physics callback
                 self.action_completed = True # Set the action_completed flag to True
@@ -689,7 +704,8 @@ class MAPs(BaseSample):
                 print("Distance: ", distance)
                 return False
 
-        elif isinstance(planning_group, int):  # Get current position of the shuttle
+        if isinstance(planning_group, int):
+            # Get current position of the shuttle
             current_position = self.get_shuttle_position(planning_group)
             # Compute the distance between the current position and the desired position
             distance = math.sqrt((current_position[0] - desired_position[0])**2 +
@@ -698,9 +714,10 @@ class MAPs(BaseSample):
             if distance <= tolerance:
                 print("Action completed (MOVE_SHUTTLE_TO_TARGET)")
                 world= self.get_world()
-                world.remove_physics_callback("sim_step_check") # Remove the check physics callback
-                world.remove_physics_callback("sim_step_shuttles") #
+                # world.remove_physics_callback("sim_step_check") # Remove the check physics callback
+                # world.remove_physics_callback("sim_step_shuttles") #
                 self.action_completed = True # Set the action_completed flag to True
+                self.execute_actions()
                 return True
             else:
                 print("Current position: ", current_position)   
@@ -719,6 +736,16 @@ class MAPs(BaseSample):
                 action = self.recipe.pop(0)  # Retrieve the first action in the list
                 action_name = action['action']
                 parameters = action['parameters']
+
+                world= self.get_world()
+                if world.physics_callback_exists("sim_step_check"):
+                    world.remove_physics_callback("sim_step_check")
+                if world.physics_callback_exists("sim_step_shuttles"):
+                    world.remove_physics_callback("sim_step_shuttles")
+
+                carb.log_info("Executing action: " + action_name)
+
+                self.action_completed = False # Set the action_completed flag to False
            
                 if action_name == 'MOVE_TO_POSE_MOVEIT':
                     self.move_to_pose(**parameters)  # The ** operator is used to unpack the dictionary into keyword arguments
@@ -733,7 +760,9 @@ class MAPs(BaseSample):
                 elif action_name == 'MOVE_SHUTTLE_TO_TARGET':
                     position_xy = self.platform_pos_to_coordinates(parameters['target_x'],parameters['target_y'], moveit_offset = False)
                     print("position_xy: ", position_xy)
-                    self.move_shuttle_to_target(parameters['xbot_id'], position_xy[0], position_xy[1])
+                    xbot_id = int(parameters['xbot_id'])
+                    print("xbot_id: ", xbot_id)
+                    self.move_shuttle_to_target(xbot_id, position_xy[0], position_xy[1])
                     # self.move_shuttle_to_target(**parameters)
                 
                 elif action_name == 'GRIPPER_CONTROL':
@@ -742,15 +771,14 @@ class MAPs(BaseSample):
                 else:
                     print("Invalid action name: ", action_name)
 
-                self.action_completed = False 
         else:
             carb.log_info("Recipe completed!")
 
 
     async def _on_start_experiment_event_async(self):
 
-        # self.action_completed = True
-        # self.execute_actions()
+        self.action_completed = True
+        self.execute_actions()
 
         # self._world.add_physics_callback("sim_step_check", self.on_sim_step_check)
         # carb.log_info("Please run roscore before executing this script")
@@ -767,8 +795,8 @@ class MAPs(BaseSample):
         #                          joint_state_request=[1.0905, 0.62695, 0.788, 0.05935, 1.18533, 1.06728])
 
 
-        position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = False)
-        self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
+        # position_xy = self.platform_pos_to_coordinates(2,7, moveit_offset = False)
+        # self.move_shuttle_to_target(1, position_xy[0], position_xy[1]) 
         # print("position_xy: ", position_xy)
 
         # self.planning_group = 'kr3_1_arm'
@@ -797,9 +825,6 @@ class MAPs(BaseSample):
         # # Use Articulation API to get joint values
         # joint_positions =  self.kukas.get_joint_positions()
         # # print(joint_positions)
-
-
-
 
 
         # self.planning_group = self.robot_joints_data["robot_arm_1"]["planning_group"]
@@ -836,8 +861,6 @@ class MAPs(BaseSample):
 
 
 
-
-
         return
 
     def on_impulse_event(self, step_size):
@@ -845,6 +868,10 @@ class MAPs(BaseSample):
         og.Controller.set(og.Controller.attribute("/World/Kuka_Multiple_Arms/ActionGraph/OnImpulseEvent.state:enableImpulse"), True)
         
     def on_sim_step_check(self, planning_group, desired_position, step_size=1):
+        print("planning_group: ", planning_group)
+        print("planing_group type: ", type(planning_group))
+        print("self.targets_x: ", self.targets_x)
+        print("self.targets_y: ", self.targets_y)
         self.has_reached_position(planning_group, desired_position)
 
 
@@ -857,6 +884,7 @@ class MAPs(BaseSample):
     async def setup_post_reset(self):
         # await self._world.play_async()
         return
+        
 
     def world_cleanup(self):
         return
@@ -865,56 +893,46 @@ class MAPs(BaseSample):
     # Move xbots in simulation (No collision detection)
     def sim_xbots_movement(self, step_size):
 
-        max_speed = 0.3 # m/s
+        max_speed = 1.0 # m/s
         max_accel = 10.0 # m/s^2
         move_increment = step_size * max_speed 
 
-        reached_dest = [False] * self._number_shuttles  # Initialize list of reached destinations
+        # Initialize targets_reached_y array
+        if not hasattr(self, 'targets_reached_y'):
+            self.targets_reached_y = [False]*self._number_shuttles
 
         for shuttle_number in range(self._number_shuttles):
             prim = self.shuttles_prim_dict["prim_{}".format(shuttle_number + 1)]
 
             current_pos = prim.GetAttribute('xformOp:translate').Get() 
 
-            # print("current pos: ", current_pos)
-            # print("target_x", self.targets_x[shuttle_number], "shuttle_number: ", shuttle_number + 1)
-            if self.targets_x[shuttle_number] == current_pos[0] and self.targets_y[shuttle_number] == current_pos[1]:
-                reached_dest[shuttle_number] = True     
-
-            # if all(reached_dest):
-            #     print("All shuttles have reached their destinations!")
-
-                return 
-                
-            # Move shuttle up
-            if (self.targets_y[shuttle_number]) > current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) + (0.0, move_increment, 0.0))
+            #Move shuttle up
+            if (self.targets_y[shuttle_number]) > current_pos[1] and not self.targets_reached_y[shuttle_number]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos[0], current_pos[1] + move_increment, current_pos[2]))
                 if (current_pos[1] + move_increment) > self.targets_y[shuttle_number]:
-                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))               
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2])) 
+                    self.targets_reached_y[shuttle_number] = True
                 continue
             # Move shuttle down
-            elif (self.targets_y[shuttle_number]) < current_pos[1]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) - (0.0, move_increment, 0.0))
+            elif (self.targets_y[shuttle_number]) < current_pos[1] and not self.targets_reached_y[shuttle_number]:
+                prim.GetAttribute('xformOp:translate').Set((current_pos[0], current_pos[1] - move_increment, current_pos[2]))
                 if (current_pos[1] - move_increment) < self.targets_y[shuttle_number]:
-                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2])) 
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
+                    self.targets_reached_y[shuttle_number] = True
                 continue
-
-            # #current_pos = prim.GetAttribute('xformOp:translate').Get()
-
-            # Move shuttle right
-            if (self.targets_x[shuttle_number]) > current_pos[0]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) + (move_increment, 0.0, 0.0))
-                if (current_pos[0] + move_increment) > self.targets_x[shuttle_number]:
-                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
-                continue
-            # Move shuttle left
-            elif (self.targets_x[shuttle_number]) < current_pos[0]:
-                prim.GetAttribute('xformOp:translate').Set((current_pos) - (move_increment, 0.0 , 0.0))
-                if (current_pos[0] - move_increment) < self.targets_x[shuttle_number]:
-                    prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
-                continue
-
-
+            # Once the target y is reached, start moving in x direction.
+            else:
+                # Move shuttle right
+                if (self.targets_x[shuttle_number]) > current_pos[0]:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0] + move_increment, current_pos[1], current_pos[2]))
+                    if (current_pos[0] + move_increment) > self.targets_x[shuttle_number]:
+                        prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
+                # Move shuttle left
+                elif (self.targets_x[shuttle_number]) < current_pos[0]:
+                    prim.GetAttribute('xformOp:translate').Set((current_pos[0] - move_increment, current_pos[1], current_pos[2]))
+                    if (current_pos[0] - move_increment) < self.targets_x[shuttle_number]:
+                        prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
+        
     # Move xbots in simulation (Checking other shuttles in the path)
     def sim_xbots_movement_collision(self, step_size):
 
