@@ -113,10 +113,28 @@ class MAPs(BaseSample):
                 self.grid.append(grid_row)
 
         # Magnetic Stirrer
-        self._stirrer_position = np.array([0.10295, -0.69649, 0.0369])  
-        self._stirrer_orientation = np.array(euler_angles_to_quat([np.pi/2, 0, np.pi]))
+        #self._stirrer_position = np.array([0.10295, -0.69649, 0.0369])  
+        self._stirrer_position = np.array([-0.15554, 0.71716, 1.0049]) 
+        self._stirrer_orientation = np.array(euler_angles_to_quat([np.pi/2, 0, 0]))
         self._stirrer_scale = 1.0
 
+        # HPLC
+        #self._hplc_position = np.array([1.05725, -0.10274, 0.0369])
+        self._hplc_position = np.array([-1.03033, 0.15418, 1.0049])  
+        self._hplc_orientation = np.array(euler_angles_to_quat([0, 0, 0]))
+        self._hplc_scale = 0.01
+        
+        # Loading station
+        #self._loading_station_position = np.array([1.42345, -0.53634, 0.0369])  
+        self._loading_station_position = np.array([-1.47442, 0.58184, 1.0049]) 
+        self._loading_station_orientation = np.array(euler_angles_to_quat([0, 0, np.pi/2]))
+        self._loading_station_scale = 0.01
+
+        # Removing station
+        #self._removing_station_position = np.array([1.15523, -1.15596, 0.0369])  
+        self._removing_station_position = np.array([-1.04649, 1.23841, 1.0049]) 
+        self._removing_station_orientation = np.array(euler_angles_to_quat([0, 0, 0]))
+        self._removing_station_scale = 0.01
 
         # Kuka Multiple Arms:
         self._kuka_arms_position = np.array([0.0, 0.0, 1.0]) 
@@ -124,7 +142,7 @@ class MAPs(BaseSample):
         self._kuka_arms_scale = 1.0
 
         # Repository path:
-        self.repo_folder = "/home/robotlab/Documents/Github/P10-MAP/"
+        self.repo_folder = "/home/andrei/P10-MAP/"
 
         # USD asset paths:
         # self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
@@ -145,7 +163,10 @@ class MAPs(BaseSample):
             "stirrer" : self.asset_folder + "Magnetic_stirrer/Magnetic_stirrer.usd",
             #"lab_setup": self.asset_folder + "Lab_setup_v2.usd" # Lab Setup with robots
             #"lab_setup": self.asset_folder + "Lab_setup_v1.usd"  # Lab Setup without robots
-            "lab_setup": self.asset_folder + "Lab_setup_v0.usd" # Lab Setup without robots or Acopos Matrix
+            "lab_setup": self.asset_folder + "Lab_setup_v0.usd", # Lab Setup without robots or Acopos Matrix
+            "hplc": self.asset_folder + "Loading_station/Loading_station.usd",
+            "loading_station": self.asset_folder + "Loading_station/Loading_station.usd",
+            "removing_station": self.asset_folder + "Loading_station/Loading_station.usd"
         }
 
         # DEFINE STATIONS
@@ -289,12 +310,42 @@ class MAPs(BaseSample):
 
         # Add Magnetic Stirrer
         add_reference_to_stage(usd_path=self.asset_paths["stirrer"],
-                                prim_path="/World/Kuka_Multiple_Arms/Stirrer")
+                                prim_path="/World/LabSetup/Stirrer")
         
-        world.scene.add(RigidPrim(prim_path ="/World/Kuka_Multiple_Arms/Stirrer",
+        world.scene.add(RigidPrim(prim_path ="/World/LabSetup/Stirrer",
                                             name="magnetic_stirrer",
                                             position = self._stirrer_position,
                                             orientation = self._stirrer_orientation,
+                                            mass = 3))
+        
+        # Add HPLC
+        add_reference_to_stage(usd_path=self.asset_paths["hplc"],
+                                prim_path="/World/LabSetup/hplc")
+        
+        world.scene.add(RigidPrim(prim_path ="/World/LabSetup/hplc",
+                                            name="hplc",
+                                            position = self._hplc_position,
+                                            orientation = self._hplc_orientation,
+                                            mass = 3))
+        
+        # Add Loading station
+        add_reference_to_stage(usd_path=self.asset_paths["loading_station"],
+                                prim_path="/World/LabSetup/loading_station")
+        
+        world.scene.add(RigidPrim(prim_path ="/World/LabSetup/loading_station",
+                                            name="loading_station",
+                                            position = self._loading_station_position,
+                                            orientation = self._loading_station_orientation,
+                                            mass = 3))
+        
+        # Add Remove station
+        add_reference_to_stage(usd_path=self.asset_paths["removing_station"],
+                                prim_path="/World/LabSetup/removing_station")
+        
+        world.scene.add(RigidPrim(prim_path ="/World/LabSetup/removing_station",
+                                            name="removing_station",
+                                            position = self._removing_station_position,
+                                            orientation = self._removing_station_orientation,
                                             mass = 3))
         # Add Robots references
         add_reference_to_stage(usd_path=self.asset_paths["kuka_multiple"],
