@@ -1,5 +1,11 @@
 ## Place tray_beaker on shuttle #1
 ##
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 4
+    target_y: 0
+
 - action: MOVE_TO_POSE_MOVEIT #over loading station (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
@@ -53,11 +59,11 @@
 
 ## DISPENSE
 ##
-# - action: MOVE_SHUTTLE_TO_TARGET
-#   parameters:
-#     xbot_id: 1
-#     target_x: 5
-#     target_y: 4
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 4
+    target_y: 4
 
 - action: MOVE_TO_POSE_IN_PLATFORM #move above the (BEAKER)
   parameters:
@@ -79,11 +85,11 @@
 
 ## Pipette
 ##
-# - action: MOVE_SHUTTLE_TO_TARGET
-#   parameters:
-#     xbot_id: 1
-#     target_x: 5
-#     target_y: 7
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 5
+    target_y: 7
 
 - action: MOVE_TO_POSE_IN_PLATFORM #move above the (BEAKER)
   parameters:
@@ -102,6 +108,182 @@
     planning_group: 'robot_arm_3'
     position: [4, 7, 0.4]
     orientation: [0.0, 0, 0.0]
+
+## Stirring station
+##
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 0
+    target_y: 7
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_1'
+    position: [0, 7, 0.35]
+    orientation: [0.0, 1.5708, 0.0]
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_1'
+    position: [0, 7, 0.28]
+    orientation: [0.0, 1.5708, 0.0]
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_1'
+    position: [0, 7, 0.35]
+    orientation: [0.0, 1.5708, 0.0]
+
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_1'
+    state: 'close'
+
+- action: MOVE_ALONG_CARTESIAN_PATH
+  parameters:
+    planning_group: 'robot_arm_1'
+    waypoints:
+      - [[0.17, -0.88, 0.35], [0.0, 1.5708, 0.0]]
+
+- action: MOVE_ALONG_CARTESIAN_PATH
+  parameters:
+    planning_group: 'robot_arm_1'
+    waypoints:
+      - [[0.17, -0.88, 0.265], [0.0, 1.5708, 0.0]]
+
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_1'
+    state: 'open'
+
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_1'
+    state: 'close'
+
+- action: MOVE_ALONG_CARTESIAN_PATH
+  parameters:
+    planning_group: 'robot_arm_1'
+    waypoints:
+      - [[0.17, -0.88, 0.35], [0.0, 1.5708, 0.0]]
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_1'
+    position: [0, 7, 0.35]
+    orientation: [0.0, 1.5708, 0.0]
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_1'
+    position: [0, 7, 0.28]
+    orientation: [0.0, 1.5708, 0.0]
+
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_1'
+    state: 'open'
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_1'
+    position: [0, 7, 0.35]
+    orientation: [0.0, 1.5708, 0.0]
+
+##Pipette
+##
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 5
+    target_y: 7
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_3'
+    position: [4, 7, 0.4]
+    orientation: [0.0, 0, 0.0]
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_3'
+    position: [4, 7, 0.29]
+    orientation: [0.0, 0, 0.0]   
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_3'
+    position: [4, 7, 0.4]
+    orientation: [0.0, 0, 0.0]
+
+## Remove station
+##
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 0
+    target_y: 4
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_2'
+    position: [0, 4, 0.4]
+    orientation: [0.0, 0, 0.0]
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_2'
+    position: [0, 4, 0.29]
+    orientation: [0.0, 0, 0.0]   
+
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_2'
+    state: 'close'
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_2'
+    position: [0, 4, 0.4]
+    orientation: [0.0, 0, 0.0]
+
+- action: MOVE_ALONG_CARTESIAN_PATH
+  parameters:
+    planning_group: 'robot_arm_2'
+    waypoints:
+      - [[1.16, -1.21, 0.35], [0.0, 1.5708, 0.0]]
+
+- action: MOVE_ALONG_CARTESIAN_PATH
+  parameters:
+    planning_group: 'robot_arm_2'
+    waypoints:
+      - [[1.16, -1.21, 0.265], [0.0, 1.5708, 0.0]]
+
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_2'
+    state: 'open'
+
+- action: MOVE_ALONG_CARTESIAN_PATH
+  parameters:
+    planning_group: 'robot_arm_2'
+    waypoints:
+      - [[1.16, -1.21, 0.35], [0.0, 1.5708, 0.0]]
+
+- action: MOVE_TO_POSE_IN_PLATFORM
+  parameters:
+    planning_group: 'robot_arm_2'
+    position: [0, 4, 0.4]
+    orientation: [0.0, 0, 0.0]
+## Return shuttle 1
+##
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 1
+    target_x: 4
+    target_y: 0
+
 
 # - action: MOVE_TO_POSE_MOVEIT
 #   parameters:
