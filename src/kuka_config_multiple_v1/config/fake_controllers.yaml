@@ -1,0 +1,76 @@
+controller_list:
+  - name: fake_kr3_1_arm_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr3_1_joint_a1
+      - kr3_1_joint_a2
+      - kr3_1_joint_a3
+      - kr3_1_joint_a4
+      - kr3_1_joint_a5
+      - kr3_1_joint_a6
+  - name: fake_kr3_1_hand_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr3_1_schunk_joint_left
+      - kr3_1_schunk_joint_right
+  - name: fake_kr3_2_arm_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr3_2_joint_a1
+      - kr3_2_joint_a2
+      - kr3_2_joint_a3
+      - kr3_2_joint_a4
+      - kr3_2_joint_a5
+      - kr3_2_joint_a6
+  - name: fake_kr3_2_hand_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr3_2_schunk_joint_left
+      - kr3_2_schunk_joint_right
+  - name: fake_kr3_3_arm_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr3_3_joint_a1
+      - kr3_3_joint_a2
+      - kr3_3_joint_a3
+      - kr3_3_joint_a4
+      - kr3_3_joint_a5
+      - kr3_3_joint_a6
+  - name: fake_kr3_3_hand_controller
+    type: $(arg fake_execution_type)
+    joints:
+      []
+  - name: fake_kr3_4_arm_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr3_4_joint_a1
+      - kr3_4_joint_a2
+      - kr3_4_joint_a3
+      - kr3_4_joint_a4
+      - kr3_4_joint_a5
+      - kr3_4_joint_a6
+  - name: fake_kr3_4_hand_controller
+    type: $(arg fake_execution_type)
+    joints:
+      []
+  - name: fake_kr4_5_arm_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr4_5_joint_a1
+      - kr4_5_joint_a2
+      - kr4_5_joint_a3
+      - kr4_5_joint_a4
+      - kr4_5_joint_a5
+      - kr4_5_joint_a6
+  - name: fake_kr4_5_hand_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - kr4_5_schunk_joint_left
+      - kr4_5_schunk_joint_right
+initial:  # Define initial robot poses per group
+  - group: kr3_1_hand
+    pose: kr3_1_open
+  - group: kr3_2_hand
+    pose: kr3_2_open
+  - group: kr4_5_hand
+    pose: kr4_5_open
