@@ -210,14 +210,14 @@
     <limit effort="100" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="kr3_1_joint_a2" type="revolute">
-    <origin rpy="0 -1.2 0" xyz="0.020 0 0"/>
+    <origin rpy="0 -1 0" xyz="0.020 0 0"/>
     <parent link="kr3_1_link_1"/>
     <child link="kr3_1_link_2"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
   </joint>
   <joint name="kr3_1_joint_a3" type="revolute">
-    <origin rpy="0 1.8 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_1_link_2"/>
     <child link="kr3_1_link_3"/>
     <axis xyz="0 1 0"/>
@@ -231,7 +231,7 @@
     <limit effort="100" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
   </joint>
   <joint name="kr3_1_joint_a5" type="revolute">
-    <origin rpy="0 1 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_1_link_4"/>
     <child link="kr3_1_link_5"/>
     <axis xyz="0 1 0"/>
@@ -511,14 +511,14 @@
     <limit effort="100" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="kr3_2_joint_a2" type="revolute">
-    <origin rpy="0 -1.2 0" xyz="0.020 0 0"/>
+    <origin rpy="0 -1 0" xyz="0.020 0 0"/>
     <parent link="kr3_2_link_1"/>
     <child link="kr3_2_link_2"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
   </joint>
   <joint name="kr3_2_joint_a3" type="revolute">
-    <origin rpy="0 1.8 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_2_link_2"/>
     <child link="kr3_2_link_3"/>
     <axis xyz="0 1 0"/>
@@ -532,7 +532,7 @@
     <limit effort="100" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
   </joint>
   <joint name="kr3_2_joint_a5" type="revolute">
-    <origin rpy="0 1 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_2_link_4"/>
     <child link="kr3_2_link_5"/>
     <axis xyz="0 1 0"/>
@@ -812,14 +812,14 @@
     <limit effort="100" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="kr3_3_joint_a2" type="revolute">
-    <origin rpy="0 -1.2 0" xyz="0.020 0 0"/>
+    <origin rpy="0 -1 0" xyz="0.020 0 0"/>
     <parent link="kr3_3_link_1"/>
     <child link="kr3_3_link_2"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
   </joint>
   <joint name="kr3_3_joint_a3" type="revolute">
-    <origin rpy="0 1.8 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_3_link_2"/>
     <child link="kr3_3_link_3"/>
     <axis xyz="0 1 0"/>
@@ -833,7 +833,7 @@
     <limit effort="100" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
   </joint>
   <joint name="kr3_3_joint_a5" type="revolute">
-    <origin rpy="0 -0.55 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_3_link_4"/>
     <child link="kr3_3_link_5"/>
     <axis xyz="0 1 0"/>
@@ -1055,14 +1055,14 @@
     <limit effort="100" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="kr3_4_joint_a2" type="revolute">
-    <origin rpy="0 -1.2 0" xyz="0.020 0 0"/>
+    <origin rpy="0 -1 0" xyz="0.020 0 0"/>
     <parent link="kr3_4_link_1"/>
     <child link="kr3_4_link_2"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-2.9670597283903604" upper="0.8726646259971648" velocity="9.232791743050003"/>
   </joint>
   <joint name="kr3_4_joint_a3" type="revolute">
-    <origin rpy="0 1.8 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_4_link_2"/>
     <child link="kr3_4_link_3"/>
     <axis xyz="0 1 0"/>
@@ -1076,7 +1076,7 @@
     <limit effort="100" lower="-3.0543261909900767" upper="3.0543261909900767" velocity="10.471975511965978"/>
   </joint>
   <joint name="kr3_4_joint_a5" type="revolute">
-    <origin rpy="0 -0.55 0" xyz="0.260 0 0"/>
+    <origin rpy="0 0 0" xyz="0.260 0 0"/>
     <parent link="kr3_4_link_4"/>
     <child link="kr3_4_link_5"/>
     <axis xyz="0 1 0"/>
@@ -1299,14 +1299,14 @@
     <limit effort="100" lower="-2.9670597283903604" upper="2.9670597283903604" velocity="9.250245035569947"/>
   </joint>
   <joint name="kr4_5_joint_a2" type="revolute">
-    <origin rpy="0 -1.2 0" xyz="0.020 0 0"/>
+    <origin rpy="0 -1 0" xyz="0.020 0 0"/>
     <parent link="kr4_5_link_1"/>
     <child link="kr4_5_link_2"/>
     <axis xyz="0 1 0"/>
     <limit effort="100" lower="-3.4033920413889427" upper="0.6981317007977318" velocity="9.232791743050003"/>
   </joint>
   <joint name="kr4_5_joint_a3" type="revolute">
-    <origin rpy="0 1.8 0" xyz="0.290 0 0"/>
+    <origin rpy="0 0 0" xyz="0.290 0 0"/>
     <parent link="kr4_5_link_2"/>
     <child link="kr4_5_link_3"/>
     <axis xyz="0 1 0"/>
@@ -1320,7 +1320,7 @@
     <limit effort="100" lower="-3.2288591161895095" upper="3.2288591161895095" velocity="10.471975511965978"/>
   </joint>
   <joint name="kr4_5_joint_a5" type="revolute">
-    <origin rpy="0 1 0" xyz="0 0 0"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
     <parent link="kr4_5_link_4"/>
     <child link="kr4_5_link_5"/>
     <axis xyz="0 1 0"/>
