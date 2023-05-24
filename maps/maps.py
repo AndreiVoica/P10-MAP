@@ -717,7 +717,7 @@ class MAPs(BaseSample):
                 # world.remove_physics_callback("sim_step_check") # Remove the check physics callback
                 # world.remove_physics_callback("sim_step_shuttles") #
                 self.action_completed = True # Set the action_completed flag to True
-                self.execute_actions()
+                # self.execute_actions()
                 return True
             else:
                 print("Current position: ", current_position)   
@@ -759,11 +759,8 @@ class MAPs(BaseSample):
 
                 elif action_name == 'MOVE_SHUTTLE_TO_TARGET':
                     position_xy = self.platform_pos_to_coordinates(parameters['target_x'],parameters['target_y'], moveit_offset = False)
-                    print("position_xy: ", position_xy)
                     xbot_id = int(parameters['xbot_id'])
-                    print("xbot_id: ", xbot_id)
                     self.move_shuttle_to_target(xbot_id, position_xy[0], position_xy[1])
-                    # self.move_shuttle_to_target(**parameters)
                 
                 elif action_name == 'GRIPPER_CONTROL':
                     self.gripper_control(**parameters)
@@ -894,12 +891,7 @@ class MAPs(BaseSample):
     def sim_xbots_movement(self, step_size):
 
         max_speed = 1.0 # m/s
-        max_accel = 10.0 # m/s^2
         move_increment = step_size * max_speed 
-
-        # Initialize targets_reached_y array
-        if not hasattr(self, 'targets_reached_y'):
-            self.targets_reached_y = [False]*self._number_shuttles
 
         for shuttle_number in range(self._number_shuttles):
             prim = self.shuttles_prim_dict["prim_{}".format(shuttle_number + 1)]
@@ -907,21 +899,18 @@ class MAPs(BaseSample):
             current_pos = prim.GetAttribute('xformOp:translate').Get() 
 
             #Move shuttle up
-            if (self.targets_y[shuttle_number]) > current_pos[1] and not self.targets_reached_y[shuttle_number]:
+            if (self.targets_y[shuttle_number]) > current_pos[1]:
                 prim.GetAttribute('xformOp:translate').Set((current_pos[0], current_pos[1] + move_increment, current_pos[2]))
                 if (current_pos[1] + move_increment) > self.targets_y[shuttle_number]:
                     prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2])) 
-                    self.targets_reached_y[shuttle_number] = True
-                continue
             # Move shuttle down
-            elif (self.targets_y[shuttle_number]) < current_pos[1] and not self.targets_reached_y[shuttle_number]:
+            elif (self.targets_y[shuttle_number]) < current_pos[1]:
                 prim.GetAttribute('xformOp:translate').Set((current_pos[0], current_pos[1] - move_increment, current_pos[2]))
                 if (current_pos[1] - move_increment) < self.targets_y[shuttle_number]:
                     prim.GetAttribute('xformOp:translate').Set((current_pos[0], self.targets_y[shuttle_number], current_pos[2]))
-                    self.targets_reached_y[shuttle_number] = True
-                continue
-            # Once the target y is reached, start moving in x direction.
-            else:
+
+            # check if we reached the target in y axis, then start moving in x direction.
+            if abs(current_pos[1] - self.targets_y[shuttle_number]) < move_increment:
                 # Move shuttle right
                 if (self.targets_x[shuttle_number]) > current_pos[0]:
                     prim.GetAttribute('xformOp:translate').Set((current_pos[0] + move_increment, current_pos[1], current_pos[2]))
@@ -932,7 +921,7 @@ class MAPs(BaseSample):
                     prim.GetAttribute('xformOp:translate').Set((current_pos[0] - move_increment, current_pos[1], current_pos[2]))
                     if (current_pos[0] - move_increment) < self.targets_x[shuttle_number]:
                         prim.GetAttribute('xformOp:translate').Set((self.targets_x[shuttle_number], current_pos[1], current_pos[2]))
-        
+    
     # Move xbots in simulation (Checking other shuttles in the path)
     def sim_xbots_movement_collision(self, step_size):
 
