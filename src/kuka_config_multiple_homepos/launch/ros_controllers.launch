@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file="$(find kuka_config_multiple_homepos)/config/ros_controllers.yaml" command="load"/>
+
+  <!-- Load the controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="kr3_1_arm_controller kr3_1_hand_controller kr3_2_arm_controller kr3_2_hand_controller kr3_3_arm_controller kr3_4_arm_controller kr4_5_arm_controller kr4_5_hand_controller "/>
+
+</launch>
