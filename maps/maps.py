@@ -86,7 +86,7 @@ class MAPs(BaseSample):
 
         # Trays
         self._number_tray_vial = 2
-        self._tray_vial_position = np.array([0.30, 0.90, 1.10]) #([0.06, 0.06, 1.10])
+        self._tray_vial_position = np.array([0.65849, 0.06099, 1.10]) #([0.06, 0.06, 1.10])
         # self._tray_vial_position = np.array([1.2277, -1.2, 1])
         self._tray_vial_scale = 0.0098
 
@@ -145,7 +145,7 @@ class MAPs(BaseSample):
         self._kuka_arms_scale = 1.0
 
         # Repository path:
-        self.repo_folder = "/home/robotlab/Documents/Github/P10-MAP/"
+        self.repo_folder = "/home/andrei/P10-MAP/"
 
         # USD asset paths:
         # self.asset_folder = "omniverse://localhost/Projects/MAPs-AAU/Assets/"
@@ -596,7 +596,12 @@ class MAPs(BaseSample):
         print("position: ", self.pose_request.position)
      
         # Add a physics callback to check when the action has been completed
-        self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(planning_group, position))
+        # self._world.add_physics_callback("sim_step_check", lambda arg: self.on_sim_step_check(planning_group, position))
+
+        callback_fn = functools.partial(self.on_sim_step_check, planning_group, position)
+        self._world.add_physics_callback("sim_step_check", callback_fn)
+
+
 
         return   
 
@@ -668,8 +673,8 @@ class MAPs(BaseSample):
                 prim_item.GetAttribute('xformOp:translate').Set(( shuttle_pos[0], shuttle_pos[1] , shuttle_pos[2] + offset ))
                 
         elif isinstance(planning_group, str):
-                eef_pos, eef_orient = self.get_eef_link_position(planning_group)
-                print("eef_pos: ", eef_pos)
+                # eef_pos, eef_orient = self.get_eef_link_position(planning_group)
+                print("Not working")
                 # # Set the position of the item
                 # item_pos = prim_item.GetAttribute('xformOp:translate').Get()
                 # prim_item.GetAttribute('xformOp:translate').Set(( eef_pos[1] + 1.03443 , -eef_pos[0] +1.46063 -0.18, eef_pos[2] + 1 ))
@@ -690,7 +695,7 @@ class MAPs(BaseSample):
 
 
     # Function to open and close the gripper
-    def gripper_control(self, planning_group, state, item):
+    def gripper_control(self, planning_group, state):
         if state == "open":
             self.move_to_joint_state(planning_group, [0.0 , 0.0])
         elif state == "close":
@@ -708,8 +713,8 @@ class MAPs(BaseSample):
         eef_orient = prim_eef_link.GetAttribute('xformOp:orient').Get()
 
 
-        # return eef_pos[0], eef_pos[1], eef_pos[2], eef_orient
-        return eef_pos, eef_orient
+        return eef_pos[0], eef_pos[1], eef_pos[2], eef_orient
+        # return eef_pos, eef_orient
 
     
 
