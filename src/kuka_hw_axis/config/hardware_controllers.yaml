@@ -28,5 +28,5 @@ arm_controller:
   #state_publish_rate: 50 # Defaults to 50
   #action_monitor_rate: 20 # Defaults to 20
 
-#Robot_IP: "192.168.1.15"
+Robot_IP: "192.168.1.15"
 Robot_Port: 7000 #7001

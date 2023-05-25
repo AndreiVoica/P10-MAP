@@ -78,6 +78,18 @@
 ##
 - action: MOVE_SHUTTLE_TO_TARGET
   parameters:
+    xbot_id: 2
+    target_x: 3
+    target_y: 4 
+
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 2
+    target_x: 5
+    target_y: 5
+
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
     xbot_id: 1
     target_x: 4
     target_y: 0
