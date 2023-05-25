@@ -1,46 +1,78 @@
-## HPLC
+# ## HPLC
+# ##
+# - action: MOVE_SHUTTLE_TO_TARGET
+#   parameters:
+#     xbot_id: 2
+#     target_x: 5
+#     target_y: 1
+
+# - action: MOVE_TO_POSE_IN_PLATFORM
+#   parameters:
+#     planning_group: 'robot_arm_5'
+#     position: [5, 1, 0.35]
+#     orientation: [0.0, 0, 0.0]
+
+# - action: MOVE_TO_POSE_IN_PLATFORM
+#   parameters:
+#     planning_group: 'robot_arm_5'
+#     position: [5, 1, 0.28]
+#     orientation: [0.0, 0, 0.0]
+
+# - action: MOVE_TO_POSE_IN_PLATFORM
+#   parameters:
+#     planning_group: 'robot_arm_5'
+#     position: [5, 1, 0.35]
+#     orientation: [0.0, 0, 0.0]
+
+# - action: MOVE_ALONG_CARTESIAN_PATH
+#   parameters:
+#     planning_group: 'robot_arm_5'
+#     waypoints:
+#       - [[1.14, -0.16, 0.35], [0.0, 1.5708, 0.0]]
+
+# - action: MOVE_ALONG_CARTESIAN_PATH
+#   parameters:
+#     planning_group: 'robot_arm_5'
+#     waypoints:
+#       - [[1.14, -0.16, 0.265], [0.0, 1.5708, 0.0]]
+
+# - action: MOVE_ALONG_CARTESIAN_PATH
+#   parameters:
+#     planning_group: 'robot_arm_5'
+#     waypoints:
+#       - [[1.14, -0.16, 0.35], [0.0, 1.5708, 0.0]]
+
+## Pick and Place test
 ##
-- action: MOVE_SHUTTLE_TO_TARGET
-  parameters:
-    xbot_id: 2
-    target_x: 5
-    target_y: 1
 
-- action: MOVE_TO_POSE_IN_PLATFORM
+- action: MOVE_TO_POSE_IN_PLATFORM #down to release (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    position: [5, 1, 0.35]
-    orientation: [0.0, 0, 0.0]
+    position: [5, 0, 0.35]
+    orientation: [0.0, 1.5708, 0.0]
 
-- action: MOVE_TO_POSE_IN_PLATFORM
+- action: MOVE_TO_POSE_IN_PLATFORM #down to release (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    position: [5, 1, 0.28]
-    orientation: [0.0, 0, 0.0]
+    position: [5, 0, 0.35]
+    orientation: [0.0, 1.5708, 0.0]
 
-- action: MOVE_TO_POSE_IN_PLATFORM
+- action: MOVE_TO_POSE_IN_PLATFORM #down to release (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    position: [5, 1, 0.35]
-    orientation: [0.0, 0, 0.0]
+    position: [5, 0, 0.28]
+    orientation: [0.0, 1.5708, 0.0]
 
-- action: MOVE_ALONG_CARTESIAN_PATH
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_5'
+    state: 'close'
+
+- action: MOVE_TO_POSE_IN_PLATFORM #down to release (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    waypoints:
-      - [[1.14, -0.16, 0.35], [0.0, 1.5708, 0.0]]
-
-- action: MOVE_ALONG_CARTESIAN_PATH
-  parameters:
-    planning_group: 'robot_arm_5'
-    waypoints:
-      - [[1.14, -0.16, 0.265], [0.0, 1.5708, 0.0]]
-
-- action: MOVE_ALONG_CARTESIAN_PATH
-  parameters:
-    planning_group: 'robot_arm_5'
-    waypoints:
-      - [[1.14, -0.16, 0.35], [0.0, 1.5708, 0.0]]
+    position: [5, 0, 0.35]
+    orientation: [0.0, 1.5708, 0.0]
 
 ## Place tray_beaker on shuttle #1
 ##
