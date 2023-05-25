@@ -574,10 +574,12 @@ class MAPs(BaseSample):
     ## CONTROL FUNCTIONS
     # Function to move selected robot to desired joints position   
     def move_to_joint_state(self, planning_group, joint_state_request):
+        moveit_planning_group = self.robot_joints_data[planning_group]["planning_group"]
         self.planning_group = planning_group
         self.joint_state_request.position = joint_state_request
-        self.pub_group.publish(self.planning_group)
+        self.pub_group.publish(moveit_planning_group)
         self.pub_joints.publish(self.joint_state_request)
+
         return
     
     # Function to move selected robot to desired pose 
@@ -661,13 +663,11 @@ class MAPs(BaseSample):
     def on_sim_attach_object(self, planning_group, state, item, step_size = 0.01):
         # Get prim of item
         prim_item = self.items_prim_dict['prim_{}'.format(item)]
-        print("prim_item: ", prim_item)
-        print("type: ", type(state))
+
         # Get prim of robot arm
         offset = 0.028
         if isinstance(planning_group, int):
             if state == True:
-                print("state: ", state)
 
                 shuttle_pos = self.get_shuttle_position(planning_group)
                 prim_item.GetAttribute('xformOp:translate').Set(( shuttle_pos[0], shuttle_pos[1] , shuttle_pos[2] + offset ))
@@ -699,7 +699,7 @@ class MAPs(BaseSample):
         if state == "open":
             self.move_to_joint_state(planning_group, [0.0 , 0.0])
         elif state == "close":
-            self.move_to_joint_state(planning_group, [-0.0047 , -0.0047])
+            self.move_to_joint_state(planning_group, [-0.0041 , -0.0041])
         else:
             raise ValueError(f"state {state} not found in gripper_control")
 

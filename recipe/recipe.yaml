@@ -57,6 +57,11 @@
     position: [5, 0, 0.35]
     orientation: [0.0, 1.5708, 0.0]
 
+- action: GRIPPER_CONTROL
+  parameters:
+    planning_group: 'robot_hand_5'
+    state: 'open'
+
 - action: MOVE_TO_POSE_IN_PLATFORM #down to release (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
@@ -71,7 +76,7 @@
 - action: MOVE_TO_POSE_IN_PLATFORM #down to release (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    position: [5, 0, 0.35]
+    position: [5, 0, 0.38]
     orientation: [0.0, 1.5708, 0.0]
 
 ## Place tray_beaker on shuttle #1
