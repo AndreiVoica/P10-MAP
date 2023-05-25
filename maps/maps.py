@@ -14,7 +14,7 @@ from omni.isaac.core import World
 from omni.isaac.core.prims import GeometryPrim, XFormPrim, RigidPrim
 import omni.kit.commands
 from pxr import Sdf, Gf, UsdPhysics
-from omni.isaac.core.utils.rotations import euler_angles_to_quat, quat_to_euler_angles
+from omni.isaac.core.utils.rotations import euler_angles_to_quat, quat_to_euler_angles, euler_to_rot_matrix
 import numpy as np
 
 from omni.isaac.core.utils.stage import add_reference_to_stage
@@ -85,13 +85,13 @@ class MAPs(BaseSample):
         self.targets_y = []
 
         # Trays
-        self._number_tray_vial = 1
+        self._number_tray_vial = 2
         self._tray_vial_position = np.array([0.30, 0.90, 1.10]) #([0.06, 0.06, 1.10])
         # self._tray_vial_position = np.array([1.2277, -1.2, 1])
         self._tray_vial_scale = 0.0098
 
-        self._number_tray_beaker = 0
-        self._tray_beaker_position = np.array([0.18, 0.06, 1.090])
+        self._number_tray_beaker = 2
+        self._tray_beaker_position = np.array([0.30, 0.06, 1.090])
         # self._tray_beaker_position = np.array([1.42, -1.2, 1])
         self._tray_beaker_scale = 0.0099
 
@@ -138,6 +138,7 @@ class MAPs(BaseSample):
         self._removing_station_position = np.array([-1.04649, 1.23841, 1.0049]) 
         self._removing_station_orientation = np.array(euler_angles_to_quat([0, 0, 0]))
         self._removing_station_scale = 0.01
+
         # Kuka Multiple Arms:
         self._kuka_arms_position = np.array([0.0, 0.0, 1.0]) 
         self._kuka_arms_orientation = np.array(euler_angles_to_quat([0, 0, 0]))
@@ -212,6 +213,7 @@ class MAPs(BaseSample):
 
         # Prim paths Dictionaries:
         self.shuttles_prim_dict = {} # Dictionary to store shuttle prim paths
+        self.items_prim_dict = {} # Dictionary to store tray vial prim paths
         self.eef_link_prim_dict = {} # Dictionary to store eef link prim paths for each robot
         self.gripper_prim_dict = {} # Dictionary to store gripper prim paths for each robot
 
@@ -222,8 +224,6 @@ class MAPs(BaseSample):
         self.filename = self.repo_folder + "src/kuka_config_multiple/config/simple_moveit_controllers.yaml"
         self.joints_loader = ControllerJointsLoader(self.filename)
         self.robot_joints_data = self.joints_loader.get_controller_data()
-
-        # OUTPUT {'robot_arm_1': {'planning_group': 'kr3_1_arm', 'joints': ['kr3_1_joint_a1', 'kr3_1_joint_a2', 'kr3_1_joint_a3', 'kr3_1_joint_a4', 'kr3_1_joint_a5', 'kr3_1_joint_a6'], 'eef_link': 'kr3_1_link_6'}, 'robot_hand_1': {'planning_group': 'kr3_1_hand', 'joints': ['kr3_1_schunk_joint_left', 'kr3_1_schunk_joint_right'], 'eef_link': 'kr3_1_link_6'}, 'robot_arm_2': {'planning_group': 'kr3_2_arm', 'joints': ['kr3_2_joint_a1', 'kr3_2_joint_a2', 'kr3_2_joint_a3', 'kr3_2_joint_a4', 'kr3_2_joint_a5', 'kr3_2_joint_a6'], 'eef_link': 'kr3_2_link_6'}, 'robot_hand_2': {'planning_group': 'kr3_2_hand', 'joints': ['kr3_2_schunk_joint_left', 'kr3_2_schunk_joint_right'], 'eef_link': 'kr3_2_link_6'}, 'robot_arm_3': {'planning_group': 'kr3_3_arm', 'joints': ['kr3_3_joint_a1', 'kr3_3_joint_a2', 'kr3_3_joint_a3', 'kr3_3_joint_a4', 'kr3_3_joint_a5', 'kr3_3_joint_a6'], 'eef_link': 'kr3_3_link_6'}, 'robot_arm_4': {'planning_group': 'kr3_4_arm', 'joints': ['kr3_4_joint_a1', 'kr3_4_joint_a2', 'kr3_4_joint_a3', 'kr3_4_joint_a4', 'kr3_4_joint_a5', 'kr3_4_joint_a6'], 'eef_link': 'kr3_4_link_6'}, 'robot_arm_5': {'planning_group': 'kr4_5_arm', 'joints': ['kr4_5_joint_a1', 'kr4_5_joint_a2', 'kr4_5_joint_a3', 'kr4_5_joint_a4', 'kr4_5_joint_a5', 'kr4_5_joint_a6'], 'eef_link': 'kr4_5_link_6'}, 'robot_hand_5': {'planning_group': 'kr4_5_hand', 'joints': ['kr4_5_schunk_joint_left', 'kr4_5_schunk_joint_right'], 'eef_link': 'kr4_5_link_6'}}
 
         print(self.robot_joints_data)
 
@@ -326,7 +326,7 @@ class MAPs(BaseSample):
                                             orientation = self._stirrer_orientation,
                                             mass = 3))
 
-            # Add HPLC
+        # Add HPLC
         add_reference_to_stage(usd_path=self.asset_paths["hplc"],
                                 prim_path="/World/LabSetup/hplc")
         
@@ -401,6 +401,28 @@ class MAPs(BaseSample):
             else:
                 print("Error: shuttle prim not found at path {}".format(shuttle_path))
 
+        # Items Prim Dictionary
+        for tray_vial in range(self._number_tray_vial):
+            tray_vial_path = "/World/LabSetup/Grid/tray_vial_{}".format(tray_vial + 1)
+            prim = stage.GetPrimAtPath(tray_vial_path)
+            if prim:
+                key_name = "prim_tray_vial_{}".format(tray_vial + 1)
+                self.items_prim_dict[key_name] = prim
+
+        for tray_beaker in range(self._number_tray_beaker):
+            tray_beaker_path = "/World/LabSetup/Grid/tray_beaker_{}".format(tray_beaker + 1)
+            prim = stage.GetPrimAtPath(tray_beaker_path)
+            if prim:
+                key_name = "prim_tray_beaker_{}".format(tray_beaker + 1)
+                while key_name in self.items_prim_dict:  # Check if the key already exists in the dictionary
+                    tray_beaker += self._number_tray_vial  # Increment the index by the number of vials
+                    tray_beaker_path = "/World/LabSetup/Grid/tray_beaker_{}".format(tray_beaker + 1)
+                    prim = stage.GetPrimAtPath(tray_beaker_path)
+                    key_name = "prim_{}_beaker".format(tray_beaker + 1)
+                self.items_prim_dict[key_name] = prim
+
+        print("ITEMS DICT: ", self.items_prim_dict)
+
         # Iterate over each robot
         for robot_name, robot_data in self.robot_joints_data.items():
             eef_link = robot_data['eef_link']
@@ -412,6 +434,8 @@ class MAPs(BaseSample):
                 print("Error: eef link prim not found at path {}".format(eef_link_path))
 
         print("EEF DICT: ", self.eef_link_prim_dict)
+
+
         
         # Create rospy node to publish requested joint positions
         rospy.init_node('isaac_joint_request_publisher')
@@ -624,9 +648,49 @@ class MAPs(BaseSample):
 
         # self._world.add_physics_callback("sim_step_check", lambda xbot_id=xbot_id, desired_position=desired_position: self.on_sim_step_check(xbot_id, desired_position))
 
-        
+    def attach_object(self, planning_group, state, item):
+        # Attach the shuttle to the robot arm
+        callback_fn = functools.partial(self.on_sim_attach_object, planning_group, state, item)
+        self._world.add_physics_callback("sim_attach_object", callback_fn)
+
+    def on_sim_attach_object(self, planning_group, state, item, step_size = 0.01):
+        # Get prim of item
+        prim_item = self.items_prim_dict['prim_{}'.format(item)]
+        print("prim_item: ", prim_item)
+        print("type: ", type(state))
+        # Get prim of robot arm
+        offset = 0.028
+        if isinstance(planning_group, int):
+            if state == True:
+                print("state: ", state)
+
+                shuttle_pos = self.get_shuttle_position(planning_group)
+                prim_item.GetAttribute('xformOp:translate').Set(( shuttle_pos[0], shuttle_pos[1] , shuttle_pos[2] + offset ))
+                
+        elif isinstance(planning_group, str):
+                eef_pos, eef_orient = self.get_eef_link_position(planning_group)
+                print("eef_pos: ", eef_pos)
+                # # Set the position of the item
+                # item_pos = prim_item.GetAttribute('xformOp:translate').Get()
+                # prim_item.GetAttribute('xformOp:translate').Set(( eef_pos[1] + 1.03443 , -eef_pos[0] +1.46063 -0.18, eef_pos[2] + 1 ))
+
+                # # CHECK Maybe create a fake point in between both grippers to attach the item to the robot arm
+
+                # # Convert orientation from GfQuatd to GfQuatf
+                # # eef_orient_f = Gf.Quatf(eef_orient)
+                # # print(eef_orient_f)
+                # # prim_item.GetAttribute('xformOp:orient').Set(eef_orient_f)
+
+                # # Transform orientation from euler angles to quaternion
+                # quat_prim = euler_angles_to_quat([0.0, 0.0, 0.0])
+                # quat = Gf.Quatf(*quat_prim)
+                # # Set Orientation of item
+                # prim_item.GetAttribute('xformOp:orient').Set(quat)
+
+
+
     # Function to open and close the gripper
-    def gripper_control(self, planning_group, state):
+    def gripper_control(self, planning_group, state, item):
         if state == "open":
             self.move_to_joint_state(planning_group, [0.0 , 0.0])
         elif state == "close":
@@ -641,8 +705,12 @@ class MAPs(BaseSample):
         prim_eef_link = self.eef_link_prim_dict[robot_arm] # Robot arm is a string (e.g. "robot_arm_1"")
 
         eef_pos = prim_eef_link.GetAttribute('xformOp:translate').Get()
+        eef_orient = prim_eef_link.GetAttribute('xformOp:orient').Get()
 
-        return eef_pos[0], eef_pos[1], eef_pos[2]
+
+        # return eef_pos[0], eef_pos[1], eef_pos[2], eef_orient
+        return eef_pos, eef_orient
+
     
 
     def get_shuttle_position(self, xbot_id):
@@ -655,10 +723,8 @@ class MAPs(BaseSample):
     def get_gripper_joints_position(self, robot_hand):
         # Create an ArticulationSubset instance
         articulation_subset = ArticulationSubset(articulation=self.kukas, joint_names=self.robot_joints_data[robot_hand]['joints'])
-
         # Get the joint positions
         joint_pos_left, joint_pos_right = articulation_subset.get_joint_positions()
-        # Get the joint positions
 
         return joint_pos_left, joint_pos_right
 
@@ -678,8 +744,8 @@ class MAPs(BaseSample):
             if (desired_position == "open" and joint_pos_left < -0.0046 and joint_pos_right < -0.0046) or \
             (desired_position == "close" and joint_pos_left > -0.001 and joint_pos_right > -0.001):
                 print("Action completed (GRIPPER_CONTROL)")
-                world= self.get_world()
-                world.remove_physics_callback("sim_step_check") # Remove the physics callback
+                # world= self.get_world()
+                # world.remove_physics_callback("sim_step_check") # Remove the physics callback
                 self.action_completed = True # Set the action_completed flag to True
                 return True
             else:
@@ -696,7 +762,7 @@ class MAPs(BaseSample):
             if distance <= tolerance:
                 print("Action completed (Robot moved to target)")
                 world= self.get_world()
-                world.remove_physics_callback("sim_step_check") # Remove the check physics callback
+                # world.remove_physics_callback("sim_step_check") # Remove the check physics callback
                 self.action_completed = True # Set the action_completed flag to True
                 return True
             else:
@@ -728,7 +794,6 @@ class MAPs(BaseSample):
             print("Invalid planning group type. Must be a string for a robot arm or integer for a shuttle.")
             return False
         
-
         
     def execute_actions(self):
         if len(self.recipe) > 0:
@@ -764,6 +829,14 @@ class MAPs(BaseSample):
                 
                 elif action_name == 'GRIPPER_CONTROL':
                     self.gripper_control(**parameters)
+                
+                elif action_name == 'ATTACH_OBJECT':
+                    if parameters['state'] == True:
+                        self.attach_object(**parameters)
+                        self.action_completed = True
+                    elif parameters['state'] == False:
+                            world= self.get_world()
+                            world.remove_physics_callback("sim_attach_object") # Remove the physics callback
 
                 else:
                     print("Invalid action name: ", action_name)
@@ -776,6 +849,8 @@ class MAPs(BaseSample):
 
         self.action_completed = True
         self.execute_actions()
+
+        # self.get_eef_link_position("robot_arm_1")
 
         # self._world.add_physics_callback("sim_step_check", self.on_sim_step_check)
         # carb.log_info("Please run roscore before executing this script")
