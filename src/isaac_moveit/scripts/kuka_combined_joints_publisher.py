@@ -56,7 +56,7 @@ class kuka_combined_joints_publisher:
 
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
         self.eef_link = self.move_group.get_end_effector_link()
-        # self.move_group.allow_replanning(True)
+        self.move_group.allow_replanning(True)
 
 
         self.display_trajectory_publisher = rospy.Publisher(
@@ -126,6 +126,9 @@ class kuka_combined_joints_publisher:
         self.group_name = message.data
         self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
         self.eef_link = self.move_group.get_end_effector_link()
+        if self.eef_link == "":
+            eef_name = self.group_name.split('_')[0] + '_' + self.group_name.split('_')[1]
+            self.eef_link = eef_name + "_link_6"
 
         rospy.loginfo("End effector link: %s", self.eef_link)
 
