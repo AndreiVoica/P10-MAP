@@ -192,7 +192,7 @@ class MAPs(BaseSample):
         print(self.robot_joints_data)
 
         # Load recipe with experiment instructions
-        self.actions_file = self.repo_folder + "recipe/recipe.yaml"
+        self.actions_file = self.repo_folder + "recipe/recipe_v2.yaml"
         self.actions_loader = RecipeLoader(self.actions_file)
         self.recipe = self.actions_loader.read_instructions_from_yaml()
 
@@ -537,11 +537,18 @@ class MAPs(BaseSample):
     ## CONTROL FUNCTIONS
     # Function to move selected robot to desired joints position   
     def move_to_joint_state(self, planning_group, joint_state_request):
+
         moveit_planning_group = self.robot_joints_data[planning_group]["planning_group"]
         self.planning_group = planning_group
+
         self.joint_state_request.position = joint_state_request
         self.pub_group.publish(moveit_planning_group)
         self.pub_joints.publish(self.joint_state_request)
+
+        if len(joint_state_request) == 6:
+            # Add a physics callback to check when the action has been completed
+            callback_fn = functools.partial(self.on_sim_step_check, planning_group, joint_state_request)
+            self._world.add_physics_callback("sim_step_check", callback_fn)
 
         return
     
@@ -683,6 +690,7 @@ class MAPs(BaseSample):
         
 
     def get_gripper_joints_position(self, robot_hand):
+        """ Get the current joint positions of the robot gripper """
         # Create an ArticulationSubset instance
         articulation_subset = ArticulationSubset(articulation=self.kukas, joint_names=self.robot_joints_data[robot_hand]['joints'])
         # Get the joint positions
@@ -690,13 +698,21 @@ class MAPs(BaseSample):
 
         return joint_pos_left, joint_pos_right
 
-    def has_reached_position(self, planning_group, desired_position, tolerance=0.015):
+    def get_joints_position(self, robot_arm):
+        """ Get the current joint positions of the robot arm """
+        articulation_subset = ArticulationSubset(articulation=self.kukas, joint_names=self.robot_joints_data[robot_arm]['joints'])
+        current_joint_values = articulation_subset.get_joint_positions()
+        
+
+        return current_joint_values
+
+
+    def has_reached_position(self, planning_group, desired_position, tolerance=0.01):
         """
         Check if the robot/shuttle has reached the desired position
         planning_group: string (Robot Arm) or integer (Shuttle)
         desired_position: list of 3 floats [x, y, z] in Isaac Sim coordinates or string ("open" or "close") for gripper
         """
-
 
         if isinstance(desired_position, str) and desired_position in ["open", "close"]:
             # Get the gripper joint positions
@@ -717,22 +733,51 @@ class MAPs(BaseSample):
                 return False
 
         elif isinstance(planning_group, str):  # Get current position of the robot
-            current_position = self.get_eef_link_position(planning_group)
-            # Compute the distance between the current position and the desired position
-            distance = math.sqrt((current_position[0] - desired_position[0])**2 +
-                                 (current_position[1] - desired_position[1])**2 +
-                                 (current_position[2] - desired_position[2])**2)
-            # Check if the distance is within the tolerance
-            if distance <= tolerance:
-                elapsed_time = time.time() - self.start_time
-                action_name = "{} moved to target".format(planning_group)
-                self.action_times.setdefault(action_name, []).append(elapsed_time)
-                carb.log_warn("{} completed in {:.3f} seconds".format(action_name, elapsed_time))
-                self.action_completed = True # Set the action_completed flag to True
-                return True
+
+            if len(desired_position) == 3: # Move to Pose checking (eef position)
+                current_position = self.get_eef_link_position(planning_group)
+                # Compute the distance between the current position and the desired position
+                distance = math.sqrt((current_position[0] - desired_position[0])**2 +
+                                     (current_position[1] - desired_position[1])**2 +
+                                     (current_position[2] - desired_position[2])**2)
+                # Check if the distance is within the tolerance
+                if distance <= tolerance:
+                    elapsed_time = time.time() - self.start_time
+                    action_name = "{} moved to target".format(planning_group)
+                    self.action_times.setdefault(action_name, []).append(elapsed_time)
+                    carb.log_warn("{} completed in {:.3f} seconds".format(action_name, elapsed_time))
+                    self.action_completed = True # Set the action_completed flag to True
+                    
+                    current_joint_states = self.get_joints_position(planning_group)
+                    carb.log_warn("Current joint states: {}".format(repr(current_joint_states)))
+                    return True
+                else:
+                    print("Current position: ", current_position)   
+                    print("Distance: ", distance)
+                    return False
+                
+            elif len(desired_position) == 6: # Move to Joint States checking (joint positions)
+                current_joint_states = self.get_joints_position(planning_group)
+                # Compute the distance between the current position and the desired position
+                distance = math.sqrt((current_joint_states[0] - desired_position[0])**2 +
+                                     (current_joint_states[1] - desired_position[1])**2 +
+                                     (current_joint_states[2] - desired_position[2])**2 +
+                                     (current_joint_states[3] - desired_position[3])**2 +
+                                     (current_joint_states[4] - desired_position[4])**2 +
+                                     (current_joint_states[5] - desired_position[5])**2)
+                # Check if the distance is within the tolerance
+                if distance <= tolerance:
+                    elapsed_time = time.time() - self.start_time
+                    action_name = "{} moved to joint states".format(planning_group)
+                    self.action_times.setdefault(action_name, []).append(elapsed_time)
+                    carb.log_warn("{} completed in {:.3f} seconds".format(action_name, elapsed_time))
+                    self.action_completed = True
+                else:
+                    print("Current position: ", current_joint_states)   
+                    print("Distance: ", distance)
+                    return False
             else:
-                print("Current position: ", current_position)   
-                print("Distance: ", distance)
+                print("Invalid desired position")
                 return False
 
         if isinstance(planning_group, int):
@@ -783,8 +828,11 @@ class MAPs(BaseSample):
                     world.remove_physics_callback("sim_step_shuttles")
 
                 self.action_completed = False # Set the action_completed flag to False
-           
-                if action_name == 'MOVE_TO_POSE_MOVEIT':
+
+                if action_name == 'MOVE_TO_JOINT_STATE':
+                    self.move_to_joint_state(**parameters)  # The ** operator is used to unpack the dictionary into keyword arguments
+                
+                elif action_name == 'MOVE_TO_POSE_MOVEIT':
                     self.move_to_pose(**parameters)  # The ** operator is used to unpack the dictionary into keyword arguments
                 
                 elif action_name == 'MOVE_TO_POSE_IN_PLATFORM':
