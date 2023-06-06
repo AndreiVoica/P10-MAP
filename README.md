@@ -74,26 +74,10 @@
 </details>
 
 
-
 <!-- ABOUT THE PROJECT -->
-## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
-
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should implement DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
-
-Use the `BLANK_README.md` to get started.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 ## About the Project
+
+![image info](/docs/imgs/Frontpage.png)
 
 This project focuses on the transformation of chemistry laboratories into autonomous environments that can accelerate the discovery of new materials. The main goal is to optimize chemical processes that are typically performed by humans and can thus be slow and prone to errors.
 
@@ -104,6 +88,8 @@ For development purposes, Nvidia Isaac Sim is used to create a simulated environ
 The simulation experiments demonstrate that the system is capable of automatically completing a chemical process. However, transferring these capabilities to the physical setup poses a significant challenge.
 
 The project is the outcome of a Master's thesis in Robotics at Aalborg University. 
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
 
