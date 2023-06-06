@@ -41,11 +41,9 @@
   <p align="center">
     Master Thesis in Robotics - Aalborg University
     <br />
-    <a href="https://github.com/AndreiVoica/P10-MAP](https://www.youtube.com/playlist?list=PLTbrI-WjdIEfSyzKvvQM6LQMU2solaiKI">View Demo</a>
+    <a href="https://www.youtube.com/playlist?list=PLTbrI-WjdIEfSyzKvvQM6LQMU2solaiKI">View Demo</a>
     <br />
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
