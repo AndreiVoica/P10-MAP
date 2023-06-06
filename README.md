@@ -93,7 +93,17 @@ Use the `BLANK_README.md` to get started.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+## About the Project
 
+This project focuses on the transformation of chemistry laboratories into autonomous environments that can accelerate the discovery of new materials. The main goal is to optimize chemical processes that are typically performed by humans and can thus be slow and prone to errors.
+
+The project utilizes robotic solutions and simulation to achieve this goal. The autonomous laboratory will be implemented on the AAU Matrix Production setup. This setup consists of five Kuka robotic manipulators, the B&R Automation Acopos 6D magnetic levitation platform, and various custom-made parts.
+
+For development purposes, Nvidia Isaac Sim is used to create a simulated environment that replicates the physical setup. This allows for the execution of different experiments in a virtual setting. The Robot Operating System (ROS1) is used to control both the simulated Kuka manipulators and their real-world counterparts.
+
+The simulation experiments demonstrate that the system is capable of automatically completing a chemical process. However, transferring these capabilities to the physical setup poses a significant challenge.
+
+The project is the outcome of a Master's thesis in Robotics at Aalborg University. 
 
 ### Built With
 
