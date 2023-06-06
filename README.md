@@ -41,7 +41,7 @@
   <p align="center">
     Master Thesis in Robotics - Aalborg University
     <br />
-    <a href="https://github.com/AndreiVoica/P10-MAP">View Demo</a>
+    <a href="https://github.com/AndreiVoica/P10-MAP](https://www.youtube.com/playlist?list=PLTbrI-WjdIEfSyzKvvQM6LQMU2solaiKI">View Demo</a>
     <br />
 </div>
 
@@ -76,7 +76,10 @@
 <!-- ABOUT THE PROJECT -->
 ## About the Project
 
-![image info](/docs/imgs/Frontpage.png)
+<p align="center">
+<img src="/docs/imgs/Frontpage.png" alt="Frontpage" width="700">
+</p>
+
 
 This project focuses on the transformation of chemistry laboratories into autonomous environments that can accelerate the discovery of new materials. The main goal is to optimize chemical processes that are typically performed by humans and can thus be slow and prone to errors.
 
@@ -103,6 +106,7 @@ The project is the outcome of a Master's thesis in Robotics at Aalborg Universit
 <a href="https://www.ros.org/"> <img src="https://upload.wikimedia.org/wikipedia/commons/b/bb/Ros_logo.svg" alt="ros_logo" height="36"> </a>
 
 </p>
+ 
  
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -147,6 +151,13 @@ See [planar motor controller API documentation](/installation/planar_motor_contr
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+
+The following image shows the communication workflow between ROS and physical robots (blue), Simulation environment
+(green) and Magnetic levitation platform (orange). Machine Readable Recipe is not implemented.
+
+<p align="center">
+<img src="/docs/imgs/Workflow.drawio_v2.png" alt="Workflow Diagram" width="400">
+</p>
 
 Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
