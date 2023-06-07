@@ -1,16 +1,6 @@
 
  
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
 <a name="P10-MAP"></a>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
-
-
 
 <!-- PROJECT SHIELDS -->
 <!--
@@ -20,7 +10,9 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+
 [![Contributors][contributors-shield]][contributors-url]
+[![Stars][stars-shield]][stars-url]
 [![MIT License][license-shield]][license-url]
 
 
@@ -88,6 +80,8 @@ The project is the outcome of a Master's thesis in Robotics at Aalborg Universit
 
 ### Built With
 
+Ubuntu 20.04 together with Isaac Sim 2022.2.1 and ROS Noetic was used for this project.
+
 <p align="left"> 
  
 <a href="https://www.python.org" target="_blank"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" alt="python" width="40" height="40"/> </a> 
@@ -108,7 +102,7 @@ The project is the outcome of a Master's thesis in Robotics at Aalborg Universit
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Ubuntu 20.04 together with Isaac Sim 2022.2.1 and ROS Noetic was used for this project.
+
 To get a local copy up and running follow these example steps.
 
 ### Prerequisites
@@ -138,9 +132,19 @@ Note: The asterisk (*) indicates that the specified amount is the minimum requir
 * Isaac Sim and MAPs Extension
 * ROS
 * MoveIt
+* KukaVarProxy 
 * Planar Motor Controller API
 
-See [planar motor controller API documentation](/installation/planar_motor_control_API/README.md)
+1. To install Isaac Sim, follow the instructions in the [Isaac Sim documentation](https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_workstation.html#).
+Once Isaac Sim is installed follow the steps in [MAPs Extension](/docs/installation/MAPs_Extension/README.md)
+
+2. To install ROS, follow the instructions in the [ROS Noetic documentation](http://wiki.ros.org/noetic/Installation/Ubuntu)
+
+3. To install MoveIt, follow the instructions in the [MoveIt documentation](https://moveit.ros.org/install/)
+
+4. To install the KukaVarProxy, follow the instructions in the [KukaVarProxy documentation](/docs/installation/KukaVarProxy/README.md)
+
+5. To install the Planar Motor Controller PMC API, follow the instructions in the [planar motor controller API documentation](/docs/installation/planar_motor_control_API/README.md)
 
 
 <!-- USAGE EXAMPLES -->
@@ -220,15 +224,12 @@ Use this space to list resources you find helpful and would like to give credit 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-
+[contributors-shield]: https://img.shields.io/github/contributors/AndreiVoica/P10-MAP.svg?style=for-the-badge
 [contributors-url]: https://github.com/AndreiVoica/P10-MAP/graphs/contributors
-
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
 [stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-url]: https://github.com/AndreiVoica/P10-MAP/stargazers
+[issues-shield]: https://img.shields.io/github/issues/AndreiVoica/P10-MAP.svg?style=for-the-badge
+
 [issues-url]: https://github.com/othneildrew/Best-README-Template/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
 [license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt

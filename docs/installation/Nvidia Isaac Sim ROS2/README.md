@@ -1,6 +1,6 @@
 # Nvidia Isaac Sim
 
-Nvidia Isaac Sim is a simulation software developed by Nvidia
+Nvidia Isaac Sim is a simulation software developed by Nvidia. In the first instance, the project was intended to be developed using ROS2, these steps may be useful for implementation with ROS2.
 
 ## Installing Nvidia Isaac Sim on Ubuntu 20.04
 
