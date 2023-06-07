@@ -13,15 +13,15 @@
 
 [![Contributors][contributors-shield]][contributors-url]
 [![Stars][stars-shield]][stars-url]
-[![MIT License][license-shield]][license-url]
+[![CC BY 4.0][cc-by-shield]][cc-by]
 
 
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/AndreiVoica/P10-MAP/">
+  <!-- <a href="https://github.com/AndreiVoica/P10-MAP/">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
+  </a> -->
 
   <h3 align="center">P10 - Material Acceleration Platforms</h3>
 
@@ -157,9 +157,7 @@ The following image shows the communication workflow between ROS and physical ro
 <img src="/docs/imgs/Workflow.drawio_v2.png" alt="Workflow Diagram" width="400">
 </p>
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -187,11 +185,10 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+This work is licensed under a
+[Creative Commons Attribution 4.0 International License][cc-by].
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- CONTACT -->
 ## Contact
@@ -199,7 +196,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 Daniel Moreno - [LinkedIn](https://www.linkedin.com/in/daniel-mparis/) - danimp94@gmail.com
 Andrei Voica - [LinkedIn](https://www.linkedin.com/in/andrei-voica-825b7a104/) - avoica18@student.aau.dk
 
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+Project Link: [https://github.com/AndreiVoica/P10-MAP](https://github.com/AndreiVoica/P10-MAP)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -252,3 +249,10 @@ Use this space to list resources you find helpful and would like to give credit 
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
+
+
+[![CC BY 4.0][cc-by-image]][cc-by]
+
+[cc-by]: http://creativecommons.org/licenses/by/4.0/
+[cc-by-image]: https://i.creativecommons.org/l/by/4.0/88x31.png
+[cc-by-shield]: https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg?style=for-the-badge
