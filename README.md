@@ -223,10 +223,11 @@ Use this space to list resources you find helpful and would like to give credit 
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/AndreiVoica/P10-MAP.svg?style=for-the-badge
 [contributors-url]: https://github.com/AndreiVoica/P10-MAP/graphs/contributors
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/AndreiVoica/P10-MAP.svg?style=for-the-badge
 [stars-url]: https://github.com/AndreiVoica/P10-MAP/stargazers
-[issues-shield]: https://img.shields.io/github/issues/AndreiVoica/P10-MAP.svg?style=for-the-badge
 
+
+[issues-shield]: https://img.shields.io/github/issues/AndreiVoica/P10-MAP.svg?style=for-the-badge
 [issues-url]: https://github.com/othneildrew/Best-README-Template/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
 [license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
