@@ -142,7 +142,7 @@ Once Isaac Sim is installed follow the steps in [MAPs Extension](/docs/installat
 
 3. To install MoveIt, follow the instructions in the [MoveIt documentation](https://moveit.ros.org/install/)
 
-4. To install the KukaVarProxy, follow the instructions in the [KukaVarProxy documentation](/docs/installation/KukaVarProxy/README.md)
+4. To install the KukaVarProxy, follow the instructions in the [KukaVarProxy documentation](https://github.com/ImtsSrl/KUKAVARPROXY)
 
 5. To install the Planar Motor Controller PMC API, follow the instructions in the [planar motor controller API documentation](/docs/installation/planar_motor_control_API/README.md)
 
