@@ -1,7 +1,6 @@
 # ## TEST AREA
 # ##
 
-
 # ## Prepare Shuttles
 # ##
 - action: MOVE_SHUTTLE_TO_TARGET
@@ -19,17 +18,17 @@
 ## PLACE TRAY BEAKER ON SHUTTLE #1
 ##
 
-- action: MOVE_TO_JOINT_STATE # Approach loading station (BEAKER)
+- action: MOVE_TO_JOINT_STATE # Approach loading station (BEAKER) #closer to the robot
   parameters:
     planning_group: 'robot_arm_5'
-    joint_state_request: [-0.24083972, -0.53065187, 2.243814, 3.0871353, -0.8133952, -1.7839196]
+    joint_state_request: [-0.292482276, -0.65042556915, 2.268, 0.0019, 0.94777905914, -0.30756279345]
 
-- action: MOVE_TO_JOINT_STATE # Down to tray (BEAKER)
+- action: MOVE_TO_JOINT_STATE # Down to tray (BEAKER) #a bit more down
   parameters:
     planning_group: 'robot_arm_5'
-    joint_state_request:  [-0.24462698, -0.30189568,  2.3373237,   3.1297731,  -0.5284149,  -1.8067492 ]
+    joint_state_request:  [-0.288131868, -0.24249465,  2.368960351,   0.0034512140,  0.43902308,  -0.30548463]
 
-- action: GRIPPER_CONTROL #close gripper (pick tray) (BEAKER)
+- action: GRIPPER_CONTROL #close gripper (pick tray) (BEAKER) #
   parameters:
     planning_group: 'robot_hand_5'
     state: 'close'
@@ -37,17 +36,17 @@
 - action: MOVE_TO_JOINT_STATE #over loading station (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    joint_state_request: [-0.24083972, -0.53065187, 2.243814, 3.0871353, -0.8133952, -1.7839196]
+    joint_state_request: [-0.292482276, -0.65042556915, 2.268, 0.0019, 0.94777905914, -0.30756279345]
 
 - action: MOVE_TO_JOINT_STATE # Move to platform (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    joint_state_request: [ 0.4951248 , -0.18098253,  2.1004589 ,  3.140828  , -0.65211844,   -1.0741844 ]
+    joint_state_request: [ 0.4470088, -0.387897855,  2.0625027,  0.00319709  , 0.891218348,   0.43492959188]
 
 - action: MOVE_TO_JOINT_STATE # Move to release (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    joint_state_request: [ 0.49276668, -0.18143892,  2.1011946 ,  3.140784  , -0.6516662 , -1.0765724 ]
+    joint_state_request: [ 0.44458649, -0.214648445,  2.116494112,  0.01099854, 0.684294905, 0.421804890]
 
 - action: GRIPPER_CONTROL # Close gripper (pick tray) (BEAKER) #CHECK
   parameters:
@@ -63,7 +62,7 @@
 - action: MOVE_TO_JOINT_STATE # Move up (BEAKER)
   parameters:
     planning_group: 'robot_arm_5'
-    joint_state_request: [ 0.49751848, -0.31925124,  2.0616386 ,  3.1417022 , -0.8279143 , -1.074064  ]
+    joint_state_request: [ 0.4470088, -0.387897855,  2.0625027,  0.00319709  , 0.891218348,   0.43492959188 ]
 
 # ## DISPENSING
 # ##
@@ -97,7 +96,7 @@
     target_x: 5
     target_y: 7
 
-- action: MOVE_TO_JOINT_STATE # Move above the (BEAKER)
+- action: MOVE_TO_JOINT_STATE # Move above the (BEAKER) #to the left a bit
   parameters:
     planning_group: 'robot_arm_3'
     joint_state_request: [-0.62992907, -0.43971083,  2.3757646, -2.08604,  1.2048512, -3.5827434]
@@ -154,16 +153,10 @@
     planning_group: 'robot_arm_1'
     joint_state_request: [ 2.5352275e-02, -3.1205681e-01,  2.1075339e+00,  3.0589319e-05, 7.7528328e-01, -1.5454926e+00]
 
-
 - action: MOVE_TO_JOINT_STATE 
   parameters:
     planning_group: 'robot_arm_1'
-    joint_state_request: [-3.4900494e-03, -5.0413102e-02,  2.1434271e+00, -7.6391043e-06, 4.7779986e-01, -1.5742810e+00]
-
-- action: GRIPPER_CONTROL # Close gripper to pick tray (BEAKER)
-  parameters:
-    planning_group: 'robot_hand_1'
-    state: 'open'
+    joint_state_request: [-3.4900494e-03, -5.0413102e-02,  2.1434271e+00, -7.6391043e-06, 4.7779986e-01, -1.5742810e+00] 
 
 - action: MOVE_TO_JOINT_STATE # Move above the (BEAKER)
   parameters:
@@ -180,6 +173,17 @@
     planning_group: 'robot_arm_1'
     joint_state_request: [ 7.99700320e-01, -1.04718536e-01,  2.18478060e+00, -1.50745313e-04, 4.89492148e-01, -7.70827234e-01]
 
+- action: GRIPPER_CONTROL # Close gripper to pick tray (BEAKER)
+  parameters:
+    planning_group: 'robot_hand_1'
+    state: 'open'
+
+- action: ATTACH_OBJECT # Detach tray (BEAKER)
+  parameters:
+    planning_group: 1
+    state: True
+    item: 'tray_beaker_1' 
+    
 - action: MOVE_TO_JOINT_STATE 
   parameters:
     planning_group: 'robot_arm_1'
