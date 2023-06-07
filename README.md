@@ -21,12 +21,7 @@
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
 [![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
 
 
 <!-- PROJECT LOGO -->
@@ -113,6 +108,7 @@ The project is the outcome of a Master's thesis in Robotics at Aalborg Universit
 <!-- GETTING STARTED -->
 ## Getting Started
 
+Ubuntu 20.04 together with Isaac Sim 2022.2.1 and ROS Noetic was used for this project.
 To get a local copy up and running follow these example steps.
 
 ### Prerequisites
@@ -196,12 +192,12 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
+Daniel Moreno - [LinkedIn](https://www.linkedin.com/in/daniel-mparis/) - danimp94@gmail.com
+Andrei Voica - [LinkedIn](https://www.linkedin.com/in/andrei-voica-825b7a104/) - avoica18@student.aau.dk
 
 Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- ACKNOWLEDGMENTS -->
@@ -225,7 +221,9 @@ Use this space to list resources you find helpful and would like to give credit 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
+
+[contributors-url]: https://github.com/AndreiVoica/P10-MAP/graphs/contributors
+
 [forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
 [forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
 [stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
