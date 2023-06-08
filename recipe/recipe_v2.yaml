@@ -212,60 +212,6 @@
     planning_group: 'robot_arm_3'
     joint_state_request: [-0.6408359 , -0.44670132,  2.4158714 , -2.1215527 ,  1.2265658 , -3.6444263 ]
 
-## PLACE TRAY VIAL ON SHUTTLE #2
-##
-- action: MOVE_SHUTTLE_TO_TARGET
-  parameters:
-    xbot_id: 2
-    target_x: 5
-    target_y: 0
-
-- action: MOVE_TO_JOINT_STATE # Approach the loading station (VIAL)
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [-0.05075216,  0.10210891,  1.4120666 , -0.002387  ,  1.0750644 ,  1.5566664 ]
-
-- action: MOVE_TO_JOINT_STATE # Down to tray (VIAL) 
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [-0.14867131,  0.24198526,  1.449532  , -0.00500216,  0.89725566, 1.4606651 ]
-
-- action: GRIPPER_CONTROL # Close gripper to pick tray (VIAL)
-  parameters:
-    planning_group: 'robot_hand_5'
-    state: 'close'
-
-- action: MOVE_TO_JOINT_STATE # Move up (VIAL)
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [-0.15860397,  0.04746647,  1.364141, -0.00177602,  1.1652192, 1.374105]
-
-- action: MOVE_TO_JOINT_STATE # Move to platform -intermediate step - (VIAL) 
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [ 0.65378374, -0.69417006,  2.2832375 ,  0.0040269 ,  0.9869535 ,2.2103326 ]
-
-- action: MOVE_TO_JOINT_STATE # Move down to release (VIAL) 
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [ 0.66078067, -0.50807303,  2.4340458 ,  0.00551091,  0.64992344, 2.2152479 ]
-
-- action: GRIPPER_CONTROL # Close gripper to pick tray (VIAL)
-  parameters:
-    planning_group: 'robot_hand_5'
-    state: 'open'
-
-- action: MOVE_TO_JOINT_STATE # Move up (VIAL) #HOME (ARM5) #CHECK
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [ 0.65660745, -0.8421382 ,  1.6420236 ,  0.00314137,  1.7763098 ,  2.2160897 ]
-
-- action: ATTACH_OBJECT # Attach tray (VIAL)
-  parameters:
-    planning_group: 2
-    state: True
-    item: 'tray_vial_1'
-
 ## REMOVE STATION
 ##
 - action: MOVE_SHUTTLE_TO_TARGET
@@ -338,6 +284,60 @@
     xbot_id: 1
     target_x: 4
     target_y: 0
+## PLACE TRAY VIAL ON SHUTTLE #2
+##
+- action: MOVE_SHUTTLE_TO_TARGET
+  parameters:
+    xbot_id: 2
+    target_x: 5
+    target_y: 0
+
+- action: MOVE_TO_JOINT_STATE # Approach the loading station (VIAL)
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [-0.13981710,  0.0027045622,  1.3585154, -0.0028382,  1.19190751,  1.73135300]
+
+- action: MOVE_TO_JOINT_STATE # Down to tray (VIAL) 
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [-0.1526178,  0.250582505,  1.47149110, -0.00380673,  0.865553805, 1.74297724]
+
+- action: GRIPPER_CONTROL # Close gripper to pick tray (VIAL)
+  parameters:
+    planning_group: 'robot_hand_5'
+    state: 'close'
+
+- action: MOVE_TO_JOINT_STATE # Move up (VIAL)
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [-0.13981710,  0.0027045622,  1.3585154, -0.0028382,  1.19190751, 1.73135300]
+
+- action: MOVE_TO_JOINT_STATE # Move to platform -intermediate step - (VIAL) 
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [ 0.65378374, -0.69417006,  2.2832375 ,  0.0040269 ,  0.9869535, 2.2103326 ]
+
+- action: MOVE_TO_JOINT_STATE # Move down to release (VIAL) 
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [ 0.66078067, -0.50807303,  2.4340458 ,  0.00551091,  0.64992344, 2.2152479 ]
+
+- action: GRIPPER_CONTROL # Close gripper to pick tray (VIAL)
+  parameters:
+    planning_group: 'robot_hand_5'
+    state: 'open'
+
+- action: ATTACH_OBJECT # Attach tray (VIAL)
+  parameters:
+    planning_group: 2
+    state: True
+    item: 'tray_vial_1'
+    
+- action: MOVE_TO_JOINT_STATE # Move up (VIAL) #HOME (ARM5) #CHECK
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [ 0.65660745, -0.8421382 ,  1.6420236 ,  0.00314137,  1.7763098 ,  2.2160897 ]
+
 
 ## PIPETTE VIAL SHUTTLE #2
 ##
@@ -370,31 +370,31 @@
     target_x: 5
     target_y: 2
 
+- action: MOVE_TO_JOINT_STATE # Approach to tray vial (VIAL)
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [ 1.1468319, -0.15948731,  1.5917627,  0.0060116120,  1.136378,  1.1349176249 ]
+
+- action: MOVE_TO_JOINT_STATE # Move to pick tray vial (VIAL)
+  parameters:
+    planning_group: 'robot_arm_5'
+    joint_state_request: [1.14539413, 0.0213551, 1.7094866, 0.007216587, 0.837676534,  1.13584212]
+
 - action: ATTACH_OBJECT
   parameters:
     planning_group: 2
     state: False
     item: 'tray_vial_1'
 
-- action: MOVE_TO_JOINT_STATE # Approach to tray vial (VIAL)
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [ 1.1043761, -0.08846141,  1.5041409,  0.00324979,  1.157039,  2.6671548 ]
-
-- action: MOVE_TO_JOINT_STATE # Move to pick tray vial (VIAL)
-  parameters:
-    planning_group: 'robot_arm_5'
-    joint_state_request: [1.1288638 , 0.09697326, 1.6491452 , 0.00406418, 0.8264456,  2.6900868 ]
-
 - action: GRIPPER_CONTROL # Pick tray vial (VIAL)
   parameters:
     planning_group: 'robot_hand_5'
     state: 'close'
 
-- action: MOVE_TO_JOINT_STATE # Move above tray vial (VIAL)
+- action: MOVE_TO_JOINT_STATE # Approach to tray vial (VIAL)
   parameters:
     planning_group: 'robot_arm_5'
-    joint_state_request: [ 1.1043761, -0.08846141,  1.5041409,  0.00324979,  1.157039,  2.6671548 ]
+    joint_state_request: [ 1.1468319, -0.15948731,  1.5917627,  0.0060116120,  1.136378,  1.1349176249]
 
 # - action: MOVE_TO_POSE_IN_PLATFORM
 #   parameters:
