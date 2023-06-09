@@ -194,6 +194,7 @@ This work is licensed under a
 ## Contact
 
 Daniel Moreno - [LinkedIn](https://www.linkedin.com/in/daniel-mparis/) - danimp94@gmail.com
+
 Andrei Voica - [LinkedIn](https://www.linkedin.com/in/andrei-voica-825b7a104/) - avoica18@student.aau.dk
 
 Project Link: [https://github.com/AndreiVoica/P10-MAP](https://github.com/AndreiVoica/P10-MAP)

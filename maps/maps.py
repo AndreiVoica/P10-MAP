@@ -483,7 +483,6 @@ class MAPs(BaseSample):
             self._connect_pmc()  # Connect to PMC
             self._world.add_physics_callback("sim_step_read_acopos", callback_fn=self.read_xbots_positions) #callback names have to be unique
             self._world.add_physics_callback("sim_step_move_acopos", callback_fn=self.send_xbots_positions)
-
         return
     
 
@@ -627,7 +626,7 @@ class MAPs(BaseSample):
         prim_item = self.items_prim_dict['prim_{}'.format(item)]
 
         # Get prim of robot arm
-        offset = 0.028
+        offset = 0.02
         if isinstance(planning_group, int):
             if state == True:
 
@@ -702,6 +701,18 @@ class MAPs(BaseSample):
         """ Get the current joint positions of the robot arm """
         articulation_subset = ArticulationSubset(articulation=self.kukas, joint_names=self.robot_joints_data[robot_arm]['joints'])
         current_joint_values = articulation_subset.get_joint_positions()
+
+        # # Debugging:
+        # current_joint_states = self.get_joints_position("robot_arm_1")
+        # carb.log_warn("Current joint states {}: {}".format("robot_arm_1" ,repr(current_joint_states)))
+        # current_joint_states = self.get_joints_position("robot_arm_2")
+        # carb.log_warn("Current joint states {}: {}".format("robot_arm_2" ,repr(current_joint_states)))
+        # current_joint_states = self.get_joints_position("robot_arm_3")
+        # carb.log_warn("Current joint states {}: {}".format("robot_arm_3" ,repr(current_joint_states)))
+        # current_joint_states = self.get_joints_position("robot_arm_4")
+        # carb.log_warn("Current joint states {}: {}".format("robot_arm_4" ,repr(current_joint_states)))
+        # current_joint_states = self.get_joints_position("robot_arm_5")
+        # carb.log_warn("Current joint states {}: {}".format("robot_arm_5" ,repr(current_joint_states)))
         
 
         return current_joint_values
@@ -723,7 +734,7 @@ class MAPs(BaseSample):
             if (desired_position == "close" and (joint_pos_left < -0.0010 or joint_pos_right < -0.0010)) or \
             (desired_position == "open" and (joint_pos_left > -0.0001 and joint_pos_right > -0.0001)):
                 elapsed_time = time.time() - self.start_time
-                action_name = "Gripper {}".format(desired_position)
+                action_name = "{} gripper {}".format(planning_group, desired_position)
                 self.action_times.setdefault(action_name, []).append(elapsed_time)
                 carb.log_warn("{} completed in {:.3f} seconds".format(action_name, elapsed_time))
                 self.action_completed = True # Set the action_completed flag to True
@@ -880,7 +891,7 @@ class MAPs(BaseSample):
         self.action_completed = True
 
         self._world.add_physics_callback("sim_step_auto_play", callback_fn=self.on_automatic_execution)
-        # self.execute_actions()
+        #self.execute_actions()
 
         return
 

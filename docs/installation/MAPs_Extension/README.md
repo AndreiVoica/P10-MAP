@@ -16,7 +16,9 @@ TO ADD:
 name = "omni.isaac.examples.maps"
 ```
 
-3. Once the extension is installed, you can run the MAPs extension from the Isaac Examples tab in the Isaac Sim GUI:
+3. Once the extension is installed, it is necessary to launch the ROS master in a terminal using `roscore` before opening Isaac Sim GUI.
+
+4. Then you can run the MAPs extension from the Isaac Examples tab in the Isaac Sim GUI:
 
 ![MAPs Extension](/docs/imgs/MAPs_extension_menu.jpg)
 
