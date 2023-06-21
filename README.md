@@ -158,6 +158,18 @@ The following image shows the communication workflow between ROS and physical ro
 </p>
 
 
+### How to run the simulation
+
+1. Launch `roscore`
+
+2. Open Isaac Sim and launch MAPs Extension. Check [MAPs Extension](/docs/installation/MAPs_Extension/README.md) for troubleshooting.
+
+3. Press Play in Isaac Sim GUI
+
+4. Launch `roslaunch isaac_moveit kuka_isaac_execution.launch` from a sourced workspace
+
+5. Start the simulation by pressing the `Start` button in the extension GUI
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
