@@ -45,7 +45,7 @@ from std_msgs.msg import String, Header
 from geometry_msgs.msg import Pose, PoseStamped, PoseArray, Point, Quaternion
 import math
 
-import sys
+# import sys
 
 # Action graph imports
 import omni.graph.core as og
@@ -74,7 +74,7 @@ class MAPs(BaseSample):
         self._grid_orientation = np.array([np.cos(shuttle_orientation/2), 0, 0, np.sin(shuttle_orientation/2)]) #Rotates 90 degrees around z-axis
 
         # Shuttles:
-        self._number_shuttles = 2
+        self._number_shuttles = 4
         # self._shuttle_position = np.array([1.2277, -0.9815, 1.07])
         self._shuttle_position = np.array([0.06, 0.06, 1.07]) #([0.06, 0.06, 1.07])
         self._platform_limits = np.array([0.0, 0.0, 0.832, 0.596]) # x_min, y_min, x_max, y_max
@@ -528,7 +528,7 @@ class MAPs(BaseSample):
         if world.physics_callback_exists("sim_step_shuttles"):
             world.remove_physics_callback("sim_step_shuttles")
         self._world.add_physics_callback("sim_step_read_acopos", callback_fn=self.read_xbots_positions) #callback names have to be unique
-        self._world.add_physics_callback("sim_step_move_acopos", callback_fn=self.send_xbots_positions)
+        #self._world.add_physics_callback("sim_step_move_acopos", callback_fn=self.send_xbots_positions) ## Random positions right now
         await world.play_async()
         return
 
@@ -1040,7 +1040,9 @@ class MAPs(BaseSample):
             quat_prim = (euler_angles_to_quat([xbot_positions[shuttle_number][3],
                                                xbot_positions[shuttle_number][4],
                                                xbot_positions[shuttle_number][5]]))
-            quat = Gf.Quatd(*quat_prim)
+            # quat = Gf.Quatd(*quat_prim)
+            quat = Gf.Quatf(*quat_prim)
+
 
             # Set Orientation of shuttle
             prim.GetAttribute('xformOp:orient').Set(quat)
@@ -1066,7 +1068,7 @@ class MAPs(BaseSample):
                 targets_x, targets_y = self.create_random_coordinates(self._number_shuttles)
                 print("target_x ", targets_x)
                 print("target_y ", targets_y)
-                bot.auto_driving_motion_si(8, xbot_ids=self.xbot_ids, targets_x=targets_x, targets_y=targets_y)
+                bot.auto_driving_motion_si(self._number_shuttles, xbot_ids=self.xbot_ids, targets_x=targets_x, targets_y=targets_y)
             else:
                 print("Xbots are moving")
 
@@ -1131,17 +1133,18 @@ class MAPs(BaseSample):
         """Connect to PMC and gain mastership"""
 
         # Connect to PMC
+        sys.auto_connect_to_pmc()
         if not sys.auto_connect_to_pmc():
             sys.connect_to_pmc("192.168.10.100") #sys.auto_connect_to_pmc()
 
-        carb.log_warn("Connected: ", sys.auto_connect_to_pmc())
-        carb.log_warn("Status: ", sys.get_pmc_status())
+        carb.log_warn("Connected: " + str(sys.auto_connect_to_pmc()))
+        carb.log_warn("Status: " + str(sys.get_pmc_status()))
 
         # Gain mastership
         if not sys.is_master():
             sys.gain_mastership()
 
-        carb.log_warn("Master: ", sys.is_master())
+        carb.log_warn("Master: " + str(sys.is_master()))
 
         # Activate xBots
         bot.activate_xbots()
