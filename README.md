@@ -171,9 +171,25 @@ The following image shows the communication workflow between ROS and physical ro
 5. Start the simulation by pressing the `Start` button in the extension GUI
 
 
+
+
+### How to run the Acopos 6D Digital Twin
+
+1. Launch `roscore`
+
+2. Open Isaac Sim and launch MAPs Extension. Check [MAPs Extension](/docs/installation/MAPs_Extension/README.md) for troubleshooting.
+
+3. Check the computer is in the same range as the PMC (by default, PMC IP: 192.168.10.100) 
+
+4. In the MAPs GUI press Connect PMC 
+
+5. Press Start Real Setup
+
+Note 1: To send random targets for each shuttle, uncomment the following line: `#self._world.add_physics_callback("sim_step_move_acopos", callback_fn=self.send_xbots_positions)` under `async def _on_real_control_event_async`
+
+Note 2: Adjust `self._number_shuttles = 4` with the number of shuttles in the physical setup
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- CONTRIBUTING 
 ## Contributing
